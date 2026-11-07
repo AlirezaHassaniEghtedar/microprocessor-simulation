@@ -1,527 +1,360 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="fav-icon.svg">
-    <title>ESP32 LED — انیمیشن سه‌بعدی پروژه</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="fav-icon.svg">
+  <title>ESP32 LED — انیمیشن سه‌بعدی پروژه</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-      :root {
-        --bg: #09090b;
-        --surface: #0c0c0e;
-        --surface-2: #111113;
-        --surface-3: #18181b;
-        --border: #27272a;
-        --border-hover: #3f3f46;
-        --text: #fafafa;
-        --text-2: #a1a1aa;
-        --text-3: #71717a;
-        --accent: #3b82f6;
-        --accent-soft: rgba(59, 130, 246, 0.12);
-        --accent-border: rgba(59, 130, 246, 0.35);
-        --green: #22c55e;
-        --green-soft: rgba(34, 197, 94, 0.12);
-        --red: #ef4444;
-        --radius: 10px;
-        --radius-sm: 6px;
-      }
+    :root {
+      --bg: #09090b;
+      --surface: #0c0c0e;
+      --surface-2: #111113;
+      --surface-3: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --text: #fafafa;
+      --text-2: #a1a1aa;
+      --text-3: #71717a;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.12);
+      --accent-border: rgba(59, 130, 246, 0.35);
+      --status-blue: #60a5fa;
+      --green: #22c55e;
+      --green-soft: rgba(34, 197, 94, 0.12);
+      --red: #ef4444;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-      body {
-        font-family: "Vazirmatn", system-ui, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        height: 100vh;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        -webkit-font-smoothing: antialiased;
-      }
+    body {
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
 
-      .header {
-        height: 56px;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
-        flex-shrink: 0;
-        z-index: 50;
-      }
+    .header {
+      height: 56px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+      z-index: 50;
+    }
 
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .brand h1 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    .brand span { font-size: 12px; color: var(--text-3); font-weight: 400; }
 
-      .brand-icon {
-        width: 32px;
-        height: 32px;
-        padding: 4px;
-        border-radius: 7px;
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-      }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
 
-      .brand h1 {
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-      }
+    .speed-group {
+      display: flex; align-items: center; gap: 2px;
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 2px; margin-left: 4px;
+    }
+    .speed-btn {
+      font-family: inherit; font-size: 11px; font-weight: 500;
+      height: 26px; padding: 0 10px; border: none; border-radius: 4px;
+      background: transparent; color: var(--text-3); cursor: pointer; transition: all 0.15s ease;
+    }
+    .speed-btn:hover { color: var(--text-2); }
+    .speed-btn.active { background: var(--accent); color: #fff; }
 
-      .brand span {
-        font-size: 12px;
-        color: var(--text-3);
-        font-weight: 400;
-      }
+    .btn {
+      font-family: inherit; font-size: 13px; font-weight: 500;
+      height: 32px; padding: 0 12px; border-radius: var(--radius-sm);
+      border: 1px solid transparent; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.15s ease; white-space: nowrap;
+    }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover:not(:disabled) { background: #2563eb; }
+    .btn-ghost { background: transparent; color: var(--text-2); border-color: var(--border); }
+    .btn-ghost:hover:not(:disabled) { background: var(--surface-3); color: var(--text); border-color: var(--border-hover); }
+    .btn-success { background: var(--green-soft); color: var(--green); border-color: rgba(34, 197, 94, 0.25); }
+    .btn-success:hover:not(:disabled) { background: rgba(34, 197, 94, 0.2); }
+    .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border-color: rgba(239, 68, 68, 0.25); }
+    .btn-danger:hover:not(:disabled) { background: rgba(239, 68, 68, 0.18); }
 
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
+    .workspace {
+      flex: 1; display: grid; grid-template-columns: 300px 1fr 320px;
+      overflow: hidden; min-height: 0;
+    }
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: 260px 1fr; }
+      .panel-code { display: none; }
+    }
+    @media (max-width: 780px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel-steps { display: none; }
+    }
 
-      .btn {
-        font-family: inherit;
-        font-size: 13px;
-        font-weight: 500;
-        height: 32px;
-        padding: 0 12px;
-        border-radius: var(--radius-sm);
-        border: 1px solid transparent;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.15s ease;
-        white-space: nowrap;
-      }
+    .panel-steps {
+      background: var(--surface); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .panel-head {
+      padding: 14px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .panel-head h2 {
+      font-size: 12px; font-weight: 600; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;
+    }
 
-      .btn:disabled {
-        opacity: 0.35;
-        cursor: not-allowed;
-        pointer-events: none;
-      }
+    .timeline-nav { display: flex; gap: 6px; }
+    .timeline-nav .btn { flex: 1; justify-content: center; font-size: 12px; height: 30px; }
 
-      .btn-primary {
-        background: var(--accent);
-        color: #fff;
-        border-color: var(--accent);
-      }
-      .btn-primary:hover:not(:disabled) {
-        background: #2563eb;
-      }
+    .steps-scroll {
+      flex: 1; overflow-y: auto; padding: 8px;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+      display: flex; flex-direction: column; gap: 6px;
+    }
 
-      .btn-ghost {
-        background: transparent;
-        color: var(--text-2);
-        border-color: var(--border);
-      }
-      .btn-ghost:hover:not(:disabled) {
-        background: var(--surface-3);
-        color: var(--text);
-        border-color: var(--border-hover);
-      }
+    .section-block {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      overflow: hidden;
+      transition: border-color 0.2s ease, opacity 0.2s ease;
+      flex-shrink: 0;
+    }
+    .section-block.active {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+    }
+    .section-block.disabled {
+      opacity: 0.45;
+    }
+    .section-block.disabled .section-header {
+      cursor: not-allowed;
+    }
 
-      .btn-success {
-        background: var(--green-soft);
-        color: var(--green);
-        border-color: rgba(34, 197, 94, 0.25);
-      }
-      .btn-success:hover:not(:disabled) {
-        background: rgba(34, 197, 94, 0.2);
-      }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .section-header:hover {
+      background: var(--surface-3);
+    }
+    .section-block.active .section-header {
+      background: var(--accent-soft);
+    }
+    .section-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+    .section-block.active .section-label {
+      color: var(--text);
+    }
+    .section-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-3);
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .section-block.active .section-badge {
+      color: var(--accent);
+      border-color: var(--accent-border);
+      background: rgba(59, 130, 246, 0.1);
+    }
 
-      .btn-danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--red);
-        border-color: rgba(239, 68, 68, 0.25);
-      }
-      .btn-danger:hover:not(:disabled) {
-        background: rgba(239, 68, 68, 0.18);
-      }
+    .section-body {
+      display: none;
+      padding: 4px 6px 8px;
+      border-top: 1px solid var(--border);
+      max-height: 48vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .section-block.open .section-body {
+      display: block;
+    }
 
-      .workspace {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 280px 1fr 300px;
-        overflow: hidden;
-        min-height: 0;
-      }
+    .step-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px; border-radius: var(--radius-sm); cursor: pointer;
+      transition: all 0.15s ease; border: 1px solid transparent;
+      margin-bottom: 2px; user-select: none;
+    }
+    .step-item:hover { background: var(--surface-3); }
+    .step-item.active { background: var(--accent-soft); border-color: var(--accent-border); }
+    .step-item.done .step-dot { background: var(--green); border-color: var(--green); color: #fff; }
+    .step-item.active .step-dot {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .step-item.locked { opacity: 0.4; cursor: default; }
+    .step-item.locked:hover { background: transparent; }
 
-      @media (max-width: 1100px) {
-        .workspace {
-          grid-template-columns: 240px 1fr;
-        }
-        .panel-code {
-          display: none;
-        }
-      }
+    .step-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid var(--border-hover); background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600; color: var(--text-3);
+      flex-shrink: 0; transition: all 0.2s ease; margin-top: 1px;
+    }
+    .step-content { flex: 1; min-width: 0; }
+    .step-title { font-size: 13px; font-weight: 500; color: var(--text-2); line-height: 1.3; }
+    .step-item.active .step-title, .step-item.done .step-title { color: var(--text); }
+    .step-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; line-height: 1.4; }
+    .step-connector {
+      width: 1.5px; height: 8px; background: var(--border);
+      margin: 0 auto; margin-right: 20px;
+    }
 
-      @media (max-width: 780px) {
-        .workspace {
-          grid-template-columns: 1fr;
-        }
-        .panel-steps {
-          display: none;
-        }
-      }
+    .viewport-wrap {
+      position: relative; background: #060608;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    #viewport { flex: 1; position: relative; min-height: 0; }
+    #viewport canvas { display: block; width: 100% !important; height: 100% !important; }
 
-      .panel-steps {
-        background: var(--surface);
-        border-left: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
+    .viewport-overlay {
+      position: absolute; inset: 0; pointer-events: none;
+      display: flex; flex-direction: column; justify-content: space-between; padding: 16px;
+    }
+    .badge {
+      align-self: flex-start; background: rgba(12, 12, 14, 0.85);
+      border: 1px solid var(--border); backdrop-filter: blur(12px);
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      color: var(--text-2); display: flex; align-items: center; gap: 6px;
+    }
+    .badge .pulse {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+      animation: pulse 1.5s ease infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+    .hint {
+      align-self: flex-end; background: rgba(12, 12, 14, 0.7);
+      border: 1px solid var(--border); backdrop-filter: blur(8px);
+      padding: 5px 10px; border-radius: 6px; font-size: 11px; color: var(--text-3);
+    }
 
-      .panel-head {
-        padding: 16px 16px 12px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-      }
+    .status-bar {
+      background: rgba(12, 12, 14, 0.92);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.1), 0 0 24px rgba(96, 165, 250, 0.08);
+      backdrop-filter: blur(12px); border-radius: var(--radius);
+      padding: 10px 14px; font-size: 13px;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    .status-bar.flash {
+      border-color: rgba(96, 165, 250, 0.7);
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.3), 0 0 28px rgba(96, 165, 250, 0.22);
+    }
+    .status-bar .status-text {
+      display: inline-block; color: var(--status-blue); font-weight: 500;
+      transition: opacity 0.2s ease, transform 0.25s ease;
+    }
+    .status-bar .status-text.out { opacity: 0; transform: translateY(6px); }
+    .status-bar .status-text.in { opacity: 1; transform: translateY(0); }
+    .status-bar .status-text.live { color: #4ade80; }
 
-      .panel-head h2 {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-3);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        margin-bottom: 12px;
-      }
+    .panel-code {
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .code-tabs {
+      display: flex; border-bottom: 1px solid var(--border);
+      padding: 0 8px; gap: 2px; flex-shrink: 0;
+    }
+    .code-tab {
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      padding: 10px 12px; background: none; border: none;
+      color: var(--text-3); cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s;
+    }
+    .code-tab:hover { color: var(--text-2); }
+    .code-tab.active { color: var(--text); border-bottom-color: var(--accent); }
 
-      .timeline-nav {
-        display: flex;
-        gap: 6px;
-      }
+    .code-body {
+      flex: 1; overflow: auto; padding: 12px 0;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 11.5px; line-height: 1.7;
+      direction: ltr; text-align: left; color: #d4d4d8;
+      background: var(--surface-2);
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
 
-      .timeline-nav .btn {
-        flex: 1;
-        justify-content: center;
-        font-size: 12px;
-        height: 30px;
-      }
+    .code-line {
+      display: block; padding: 0 14px; border-left: 3px solid transparent;
+      transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      white-space: pre;
+    }
+    .code-line.glow {
+      background: rgba(96, 165, 250, 0.12);
+      border-left-color: #60a5fa;
+      box-shadow: inset 0 0 20px rgba(96, 165, 250, 0.08);
+    }
+    .code-line .ln {
+      display: inline-block; width: 28px; color: #52525b;
+      user-select: none; margin-right: 10px; text-align: right;
+    }
+    .kw { color: #f97583; }
+    .fn { color: #b392f0; }
+    .num { color: #79b8ff; }
+    .cm { color: #6a737d; }
+    .ty { color: #ffab70; }
 
-      .steps-scroll {
-        flex: 1;
-        overflow-y: auto;
-        padding: 8px;
-        scrollbar-width: thin;
-        scrollbar-color: var(--border) transparent;
-      }
+    .legend-row {
+      padding: 12px 16px; border-top: 1px solid var(--border);
+      display: flex; gap: 14px; flex-wrap: wrap; flex-shrink: 0;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text-3);
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-      .step-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 10px 10px;
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: all 0.15s ease;
-        border: 1px solid transparent;
-        margin-bottom: 2px;
-        user-select: none;
-      }
-
-      .step-item:hover {
-        background: var(--surface-3);
-      }
-
-      .step-item.active {
-        background: var(--accent-soft);
-        border-color: var(--accent-border);
-      }
-
-      .step-item.done .step-dot {
-        background: var(--green);
-        border-color: var(--green);
-        color: #fff;
-      }
-
-      .step-item.active .step-dot {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #fff;
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-
-      .step-item.locked {
-        opacity: 0.4;
-        cursor: default;
-      }
-
-      .step-item.locked:hover {
-        background: transparent;
-      }
-
-      .step-dot {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        border: 1.5px solid var(--border-hover);
-        background: var(--surface-2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--text-3);
-        flex-shrink: 0;
-        transition: all 0.2s ease;
-        margin-top: 1px;
-      }
-
-      .step-content {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .step-title {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text-2);
-        line-height: 1.3;
-      }
-
-      .step-item.active .step-title,
-      .step-item.done .step-title {
-        color: var(--text);
-      }
-
-      .step-desc {
-        font-size: 11px;
-        color: var(--text-3);
-        margin-top: 2px;
-        line-height: 1.4;
-      }
-
-      .step-connector {
-        width: 1.5px;
-        height: 8px;
-        background: var(--border);
-        margin: 0 auto;
-        margin-right: 20px;
-      }
-
-      .viewport-wrap {
-        position: relative;
-        background: #060608;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-
-      #viewport {
-        flex: 1;
-        position: relative;
-        min-height: 0;
-      }
-
-      #viewport canvas {
-        display: block;
-        width: 100% !important;
-        height: 100% !important;
-      }
-
-      .viewport-overlay {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 16px;
-      }
-
-      .badge {
-        align-self: flex-start;
-        background: rgba(12, 12, 14, 0.85);
-        border: 1px solid var(--border);
-        backdrop-filter: blur(12px);
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text-2);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .badge .pulse {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--green);
-        animation: pulse 1.5s ease infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.5;
-          transform: scale(0.85);
-        }
-      }
-
-      .hint {
-        align-self: flex-end;
-        background: rgba(12, 12, 14, 0.7);
-        border: 1px solid var(--border);
-        backdrop-filter: blur(8px);
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        color: var(--text-3);
-      }
-
-      .status-bar {
-        background: rgba(12, 12, 14, 0.9);
-        border: 1px solid var(--border);
-        backdrop-filter: blur(12px);
-        border-radius: var(--radius);
-        padding: 10px 14px;
-        font-size: 13px;
-        color: var(--text-2);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .status-bar .live {
-        color: var(--green);
-        font-weight: 500;
-      }
-
-      .panel-code {
-        background: var(--surface);
-        border-right: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-
-      .code-tabs {
-        display: flex;
-        border-bottom: 1px solid var(--border);
-        padding: 0 8px;
-        gap: 2px;
-        flex-shrink: 0;
-      }
-
-      .code-tab {
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 500;
-        padding: 10px 12px;
-        background: none;
-        border: none;
-        color: var(--text-3);
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        margin-bottom: -1px;
-        transition: all 0.15s;
-      }
-
-      .code-tab:hover {
-        color: var(--text-2);
-      }
-      .code-tab.active {
-        color: var(--text);
-        border-bottom-color: var(--accent);
-      }
-
-      .code-body {
-        flex: 1;
-        overflow: auto;
-        padding: 16px;
-        font-family: "JetBrains Mono", "Consolas", monospace;
-        font-size: 12px;
-        line-height: 1.65;
-        direction: ltr;
-        text-align: left;
-        color: #d4d4d8;
-        background: var(--surface-2);
-        scrollbar-width: thin;
-        scrollbar-color: var(--border) transparent;
-      }
-
-      .code-placeholder {
-        color: var(--text-3);
-        font-style: italic;
-        font-family: "Vazirmatn", sans-serif;
-        font-size: 13px;
-        direction: rtl;
-        text-align: right;
-        padding: 20px 0;
-        line-height: 1.7;
-      }
-
-      .legend-row {
-        padding: 12px 16px;
-        border-top: 1px solid var(--border);
-        display: flex;
-        gap: 14px;
-        flex-wrap: wrap;
-        flex-shrink: 0;
-      }
-
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 11px;
-        color: var(--text-3);
-      }
-
-      .legend-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-      }
-
-      .progress-track {
-        height: 2px;
-        background: var(--border);
-        flex-shrink: 0;
-      }
-
-      .progress-fill {
-        height: 100%;
-        background: var(--accent);
-        width: 0%;
-        transition: width 0.4s ease;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <div class="brand">
-        <div class="brand-icon">
-          <svg
+    .progress-track { height: 2px; background: var(--border); flex-shrink: 0; }
+    .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.35s ease; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">
+                  <svg
             xmlns="http://www.w3.org/2000/svg"
             width="32"
             height="32"
             viewBox="0 0 14 14"
           >
-            <!-- Icon from Streamline by Streamline - https://creativecommons.org/licenses/by/4.0/ -->
             <g
               fill="none"
               stroke="currentColor"
@@ -534,1119 +367,1097 @@
               />
             </g>
           </svg>
-        </div>
-        <div>
-          <h1>ESP32 LED Controller</h1>
-          <span>پروژه ریزپردازنده · دکتر پورمند</span>
-        </div>
       </div>
-      <div class="header-actions">
-        <button class="btn btn-ghost" id="btnReset" disabled>بازنشانی</button>
-        <button class="btn btn-danger" id="btnStop" disabled>توقف</button>
-        <button class="btn btn-success" id="btnExp1" disabled>آزمایش ۱</button>
-        <button class="btn btn-success" id="btnExp2" disabled>آزمایش ۲</button>
-        <button class="btn btn-primary" id="btnBuild">شروع ساخت</button>
+      <div>
+        <h1>ESP32 LED Controller</h1>
+        <span>پروژه ریزپردازنده · دکتر پورمند</span>
       </div>
     </div>
-
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
+    <div class="header-actions">
+      <div class="speed-group" title="سرعت انیمیشن">
+        <button class="speed-btn" data-speed="0.5">آهسته</button>
+        <button class="speed-btn active" data-speed="1">عادی</button>
+        <button class="speed-btn" data-speed="2">سریع</button>
+      </div>
+      <button class="btn btn-ghost" id="btnReset" disabled>بازنشانی</button>
+      <button class="btn btn-danger" id="btnStop" disabled>توقف</button>
+      <button class="btn btn-success" id="btnExp1" disabled>آزمایش ۱</button>
+      <button class="btn btn-success" id="btnExp2" disabled>آزمایش ۲</button>
+      <button class="btn btn-primary" id="btnBuild">شروع ساخت</button>
     </div>
+  </div>
 
-    <div class="workspace">
-      <aside class="panel-steps">
-        <div class="panel-head">
-          <h2>مراحل ساخت</h2>
-          <div class="timeline-nav">
-            <button class="btn btn-ghost" id="btnPrev" disabled>→ قبلی</button>
-            <button class="btn btn-ghost" id="btnNext">بعدی ←</button>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="workspace">
+    <aside class="panel-steps">
+      <div class="panel-head">
+        <h2>مراحل</h2>
+        <div class="timeline-nav">
+          <button class="btn btn-ghost" id="btnPrev" disabled>→ قبلی</button>
+          <button class="btn btn-ghost" id="btnNext">بعدی ←</button>
+        </div>
+      </div>
+      <div class="steps-scroll" id="stepsList">
+        <div class="section-block open active" data-section="build" id="secBuild">
+          <div class="section-header" data-section="build">
+            <div class="section-label">مراحل ساخت</div>
+            <span class="section-badge" id="badgeBuild">0/8</span>
+          </div>
+          <div class="section-body" id="bodyBuild"></div>
+        </div>
+        <div class="section-block disabled" data-section="exp1" id="secExp1">
+          <div class="section-header" data-section="exp1">
+            <div class="section-label">آزمایش ۱ — رقص نور</div>
+            <span class="section-badge" id="badgeExp1">0/16</span>
+          </div>
+          <div class="section-body" id="bodyExp1"></div>
+        </div>
+        <div class="section-block disabled" data-section="exp2" id="secExp2">
+          <div class="section-header" data-section="exp2">
+            <div class="section-label">آزمایش ۲ — انباشت</div>
+            <span class="section-badge" id="badgeExp2">0/16</span>
+          </div>
+          <div class="section-body" id="bodyExp2"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="viewport-wrap">
+      <div id="viewport">
+        <div class="viewport-overlay">
+          <div style="display:flex;justify-content:space-between;width:100%">
+            <div class="badge" id="stageBadge"><span>آماده</span></div>
+            <div class="hint">ماوس: چرخش · اسکرول: زوم · راست‌کلیک: جابجایی</div>
+          </div>
+          <div class="status-bar" id="statusBar">
+            <span class="status-text" id="statusText">برای شروع، «شروع ساخت» را بزنید یا از دکمه‌های قبلی/بعدی استفاده کنید.</span>
           </div>
         </div>
-        <div class="steps-scroll" id="stepsList"></div>
-      </aside>
-
-      <div class="viewport-wrap">
-        <div id="viewport">
-          <div class="viewport-overlay">
-            <div
-              style="display: flex; justify-content: space-between; width: 100%"
-            >
-              <div class="badge" id="stageBadge"><span>آماده</span></div>
-              <div class="hint"
-                >ماوس: چرخش · اسکرول: زوم · راست‌کلیک: جابجایی</div
-              >
-            </div>
-            <div class="status-bar">
-              <span id="statusText"
-                >برای شروع، «شروع ساخت» را بزنید یا از دکمه‌های قبلی/بعدی
-                استفاده کنید.</span
-              >
-            </div>
-          </div>
-        </div>
       </div>
-
-      <aside class="panel-code">
-        <div class="code-tabs">
-          <button class="code-tab active" data-tab="setup">setup</button>
-          <button class="code-tab" data-tab="exp1">آزمایش ۱</button>
-          <button class="code-tab" data-tab="exp2">آزمایش ۲</button>
-        </div>
-        <div class="code-body" id="codeBody">
-          <div class="code-placeholder"
-            >کد نهایی این بخش بعداً توسط شما قرار داده می‌شود.</div
-          >
-        </div>
-        <div class="legend-row">
-          <div class="legend-item"
-            ><span class="legend-dot" style="background: #ef4444"></span>
-            قرمز</div
-          >
-          <div class="legend-item"
-            ><span class="legend-dot" style="background: #eab308"></span>
-            زرد</div
-          >
-          <div class="legend-item"
-            ><span class="legend-dot" style="background: #22c55e"></span>
-            سبز</div
-          >
-          <div class="legend-item"
-            ><span class="legend-dot" style="background: #3b82f6"></span>
-            GPIO</div
-          >
-        </div>
-      </aside>
     </div>
 
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-        }
-      }
-    </script>
+    <aside class="panel-code">
+      <div class="code-tabs">
+        <button class="code-tab active" data-tab="exp1">آزمایش ۱</button>
+        <button class="code-tab" data-tab="exp2">آزمایش ۲</button>
+      </div>
+      <div class="code-body" id="codeBody"></div>
+      <div class="legend-row">
+        <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> قرمز</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#eab308"></span> زرد</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> سبز</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#60a5fa"></span> خط فعال</div>
+      </div>
+    </aside>
+  </div>
 
-    <script type="module">
-      import * as THREE from "three";
-      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 
-      const GPIO = [16, 17, 18, 19, 21, 22, 23, 25];
-      const LED_COLORS = [
-        0xef4444, 0xeab308, 0x22c55e, 0xef4444, 0xeab308, 0x22c55e, 0xef4444,
-        0xeab308,
-      ];
-      const LED_NAMES = [
-        "قرمز",
-        "زرد",
-        "سبز",
-        "قرمز",
-        "زرد",
-        "سبز",
-        "قرمز",
-        "زرد",
-      ];
-      const WIRE_COLS = [
-        0xef4444, 0xeab308, 0x22c55e, 0x3b82f6, 0xa855f7, 0xf97316, 0x14b8a6,
-        0xec4899,
-      ];
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-      const STEPS = [
-        { id: 0, title: "بردبورد خالی", desc: "بردبورد سفید با ریل‌های برق" },
-        { id: 1, title: "قرار دادن ESP32", desc: "برد Dev Module مشکی" },
-        { id: 2, title: "افزودن ۸ LED", desc: "قرمز، زرد و سبز" },
-        { id: 3, title: "افزودن مقاومت‌ها", desc: "حدود ۲۲۰ اهم برای هر LED" },
-        { id: 4, title: "سیم‌های GPIO", desc: "اتصال پایه‌ها به آند LED" },
-        { id: 5, title: "GND و USB", desc: "سیم زمین و کابل تغذیه" },
-        { id: 6, title: "نمایش جریان", desc: "مسیر GPIO → LED → GND" },
-        { id: 7, title: "آماده اجرا", desc: "مدار کامل — اجرای آزمایش" },
-      ];
+    // ═══════════ CONFIG ═══════════
+    const GPIO = [16, 17, 18, 19, 21, 22, 23, 25];
+    const LED_COLORS = [0xef4444, 0xeab308, 0x22c55e, 0xef4444, 0xeab308, 0x22c55e, 0xef4444, 0xeab308];
+    const LED_NAMES = ['قرمز','زرد','سبز','قرمز','زرد','سبز','قرمز','زرد'];
+    const WIRE_COLS = [0xef4444, 0xeab308, 0x22c55e, 0x3b82f6, 0xa855f7, 0xf97316, 0x14b8a6, 0xec4899];
 
-      const viewport = document.getElementById("viewport");
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x060608);
-      scene.fog = new THREE.Fog(0x060608, 20, 50);
+    const BUILD_STEPS = [
+      { id: 0, title: 'بردبورد خالی', desc: 'بردبورد سفید با ریل‌های برق' },
+      { id: 1, title: 'قرار دادن ESP32', desc: 'برد Dev Module مشکی' },
+      { id: 2, title: 'افزودن ۸ LED', desc: 'قرمز، زرد و سبز' },
+      { id: 3, title: 'افزودن مقاومت‌ها', desc: 'حدود ۲۲۰ اهم برای هر LED' },
+      { id: 4, title: 'سیم‌های GPIO', desc: 'اتصال پایه‌ها به آند LED' },
+      { id: 5, title: 'GND و USB', desc: 'سیم زمین و کابل تغذیه' },
+      { id: 6, title: 'نمایش جریان', desc: 'مسیر GPIO → LED → GND' },
+      { id: 7, title: 'آماده اجرا', desc: 'مدار کامل — اجرای آزمایش' },
+    ];
 
-      const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-      camera.position.set(8, 9, 11);
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
-      viewport.insertBefore(renderer.domElement, viewport.firstChild);
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.07;
-      controls.target.set(0.5, 0.5, 0);
-      controls.maxPolarAngle = Math.PI * 0.47;
-      controls.minDistance = 6;
-      controls.maxDistance = 28;
-
-      scene.add(new THREE.AmbientLight(0x505870, 0.5));
-      const key = new THREE.DirectionalLight(0xffffff, 1.15);
-      key.position.set(6, 14, 8);
-      key.castShadow = true;
-      key.shadow.mapSize.set(2048, 2048);
-      key.shadow.camera.near = 1;
-      key.shadow.camera.far = 40;
-      key.shadow.camera.left = -12;
-      key.shadow.camera.right = 12;
-      key.shadow.camera.top = 12;
-      key.shadow.camera.bottom = -12;
-      key.shadow.bias = -0.0003;
-      scene.add(key);
-      const fill = new THREE.DirectionalLight(0x7090c0, 0.3);
-      fill.position.set(-5, 5, -4);
-      scene.add(fill);
-
-      const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(50, 50),
-        new THREE.MeshStandardMaterial({
-          color: 0x0a0a0c,
-          roughness: 0.92,
-          metalness: 0.05,
-        }),
-      );
-      ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.01;
-      ground.receiveShadow = true;
-      scene.add(ground);
-
-      const grid = new THREE.GridHelper(24, 48, 0x1a1a22, 0x121218);
-      grid.position.y = 0.005;
-      scene.add(grid);
-
-      const matBread = new THREE.MeshStandardMaterial({
-        color: 0xf2f2ec,
-        roughness: 0.8,
-        metalness: 0.02,
+    // Experiment 1 steps: 8 single + 8 pairs
+    const EXP1_STEPS = [];
+    for (let i = 0; i < 8; i++) {
+      EXP1_STEPS.push({
+        id: i, title: `فاز ۱ — LED ${i + 1}`, desc: `تک LED · GPIO ${GPIO[i]} · ۲۰۰ms`,
+        leds: [i], glow: [14, 15, 16, 17] // runOneLed body lines (1-indexed in display)
       });
-      const matEsp = new THREE.MeshStandardMaterial({
-        color: 0x1c1c1c,
-        roughness: 0.5,
-        metalness: 0.35,
+    }
+    for (let i = 0; i < 8; i++) {
+      const next = (i + 1) % 8;
+      EXP1_STEPS.push({
+        id: 8 + i, title: `فاز ۲ — جفت (${i + 1}, ${next + 1})`, desc: `دو LED مجاور · ۲۰۰ms`,
+        leds: [i, next], glow: [22, 23, 24, 25, 26, 27, 28]
       });
-      const matChip = new THREE.MeshStandardMaterial({
-        color: 0x2a2a2a,
-        roughness: 0.35,
-        metalness: 0.55,
+    }
+
+    // Experiment 2 steps derived from actual code behavior
+    const EXP2_STEPS = [];
+    // fillLine: target 3..0
+    // For each target, moveLight walks 0..target
+    let eid = 0;
+    for (let target = 3; target >= 0; target--) {
+      for (let i = 0; i <= target; i++) {
+        const on = [];
+        // LEDs that stay from previous targets (target+1 .. 3)
+        for (let k = target + 1; k <= 3; k++) on.push(k);
+        on.push(i); // current
+        // if i < target, after delay it turns off — we show the HIGH moment
+        EXP2_STEPS.push({
+          id: eid++,
+          title: `fill · target=${target} · i=${i}`,
+          desc: i < target ? `LED${i + 1} روشن سپس خاموش` : `LED${i + 1} می‌ماند`,
+          leds: [...new Set(on)],
+          // after this step if i < target, LED i goes off — handled in apply
+          turnOffAfter: i < target ? i : -1,
+          stayOn: i === target ? i : -1,
+          glow: [20, 21, 22, 23, 24, 25, 26]
+        });
+      }
+    }
+    EXP2_STEPS.push({ id: eid++, title: 'blinkAll — خاموش', desc: 'همه LOW', leds: [], glow: [30, 31] });
+    EXP2_STEPS.push({ id: eid++, title: 'blinkAll — روشن', desc: 'همه HIGH', leds: [0,1,2,3], glow: [32, 33] });
+    EXP2_STEPS.push({ id: eid++, title: 'blinkAll — خاموش', desc: 'همه LOW', leds: [], glow: [34, 35] });
+
+    // Real code with line numbers for glow
+    const CODE = {
+      exp1: [
+        { t: '<span class="cm">// Experiment 1: Ring LED dancing (ESP32)</span>' },
+        { t: '' },
+        { t: '<span class="kw">const int</span> ledPins[] = {16, 17, 18, 19, 21, 22, 23, 25};' },
+        { t: '<span class="kw">const int</span> ledCount = <span class="num">8</span>;' },
+        { t: '<span class="kw">const int</span> stepDelay = <span class="num">200</span>;' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">setup</span>() {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; ledCount; i++) {' },
+        { t: '    pinMode(ledPins[i], OUTPUT);' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">runOneLed</span>() {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; ledCount; i++) {' },
+        { t: '    digitalWrite(ledPins[i], HIGH);', key: 'one-high' },
+        { t: '    delay(stepDelay);', key: 'one-delay' },
+        { t: '    digitalWrite(ledPins[i], LOW);', key: 'one-low' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">runTwoLeds</span>() {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; ledCount; i++) {' },
+        { t: '    <span class="kw">int</span> next = (i + <span class="num">1</span>) % ledCount;' },
+        { t: '    digitalWrite(ledPins[i], HIGH);', key: 'two-high1' },
+        { t: '    digitalWrite(ledPins[next], HIGH);', key: 'two-high2' },
+        { t: '    delay(stepDelay);', key: 'two-delay' },
+        { t: '    digitalWrite(ledPins[i], LOW);', key: 'two-low1' },
+        { t: '    digitalWrite(ledPins[next], LOW);', key: 'two-low2' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">loop</span>() {' },
+        { t: '  runOneLed();', key: 'loop-one' },
+        { t: '  runTwoLeds();', key: 'loop-two' },
+        { t: '}' },
+      ],
+      exp2: [
+        { t: '<span class="cm">// Experiment 2: Line LED accumulation (ESP32)</span>' },
+        { t: '' },
+        { t: '<span class="kw">const int</span> ledPins[] = {16, 17, 18, 19};' },
+        { t: '<span class="kw">const int</span> ledCount = <span class="num">4</span>;' },
+        { t: '<span class="kw">const int</span> stepDelay = <span class="num">300</span>;' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">setup</span>() {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; ledCount; i++) {' },
+        { t: '    pinMode(ledPins[i], OUTPUT);' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">setAll</span>(<span class="kw">int</span> state) {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; ledCount; i++) {' },
+        { t: '    digitalWrite(ledPins[i], state);' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">moveLight</span>(<span class="kw">int</span> target) {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt;= target; i++) {' },
+        { t: '    digitalWrite(ledPins[i], HIGH);', key: 'mv-high' },
+        { t: '    delay(stepDelay);', key: 'mv-delay' },
+        { t: '    <span class="kw">if</span> (i &lt; target) {' },
+        { t: '      digitalWrite(ledPins[i], LOW);', key: 'mv-low' },
+        { t: '    }' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">fillLine</span>() {' },
+        { t: '  <span class="kw">for</span> (<span class="kw">int</span> target = ledCount - <span class="num">1</span>; target &gt;= <span class="num">0</span>; target--) {' },
+        { t: '    moveLight(target);', key: 'fill-call' },
+        { t: '  }' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">blinkAll</span>() {' },
+        { t: '  setAll(LOW);', key: 'blk-off1' },
+        { t: '  delay(stepDelay);' },
+        { t: '  setAll(HIGH);', key: 'blk-on' },
+        { t: '  delay(stepDelay);' },
+        { t: '  setAll(LOW);', key: 'blk-off2' },
+        { t: '  delay(stepDelay);' },
+        { t: '}' },
+        { t: '' },
+        { t: '<span class="kw">void</span> <span class="fn">loop</span>() {' },
+        { t: '  fillLine();', key: 'loop-fill' },
+        { t: '  blinkAll();', key: 'loop-blink' },
+        { t: '}' },
+      ]
+    };
+
+    // ═══════════ SCENE ═══════════
+    const viewport = document.getElementById('viewport');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x060608);
+    scene.fog = new THREE.Fog(0x060608, 20, 50);
+
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(8, 9, 11);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    viewport.insertBefore(renderer.domElement, viewport.firstChild);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.target.set(0.5, 0.5, 0);
+    controls.maxPolarAngle = Math.PI * 0.47;
+    controls.minDistance = 6;
+    controls.maxDistance = 28;
+
+    scene.add(new THREE.AmbientLight(0x505870, 0.5));
+    const key = new THREE.DirectionalLight(0xffffff, 1.15);
+    key.position.set(6, 14, 8);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.camera.near = 1; key.shadow.camera.far = 40;
+    key.shadow.camera.left = -12; key.shadow.camera.right = 12;
+    key.shadow.camera.top = 12; key.shadow.camera.bottom = -12;
+    key.shadow.bias = -0.0003;
+    scene.add(key);
+    scene.add(new THREE.DirectionalLight(0x7090c0, 0.3).translateX(-5).translateY(5).translateZ(-4));
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 50),
+      new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 0.92, metalness: 0.05 })
+    );
+    ground.rotation.x = -Math.PI / 2; ground.position.y = -0.01; ground.receiveShadow = true;
+    scene.add(ground);
+    const grid = new THREE.GridHelper(24, 48, 0x1a1a22, 0x121218);
+    grid.position.y = 0.005; scene.add(grid);
+
+    const matBread = new THREE.MeshStandardMaterial({ color: 0xf2f2ec, roughness: 0.8, metalness: 0.02 });
+    const matEsp = new THREE.MeshStandardMaterial({ color: 0x1c1c1c, roughness: 0.5, metalness: 0.35 });
+    const matChip = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.35, metalness: 0.55 });
+    const matRes = new THREE.MeshStandardMaterial({ color: 0xc4956a, roughness: 0.55, metalness: 0.08 });
+    const matPin = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.25, metalness: 0.85 });
+    const matUsb = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.35, metalness: 0.55 });
+
+    const BB = { w: 11.5, d: 6.2, h: 0.28 };
+    const ESP = { x: -4.0, z: 0, w: 1.7, d: 3.1 };
+    const LED_START_X = -1.6, LED_GAP = 0.85, LED_Z = 1.15, RES_Z = -0.15, RES_Y = 0.42;
+
+    const root = new THREE.Group(); scene.add(root);
+
+    const breadGroup = new THREE.Group(); breadGroup.visible = false; root.add(breadGroup);
+    (function buildBreadboard() {
+      const body = new THREE.Mesh(new THREE.BoxGeometry(BB.w, BB.h, BB.d), matBread);
+      body.position.y = BB.h / 2; body.castShadow = true; body.receiveShadow = true; breadGroup.add(body);
+      const railGeo = new THREE.BoxGeometry(BB.w - 0.6, 0.04, 0.18);
+      const matR = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.45 });
+      const matB = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.45 });
+      [[2.75, matR], [2.45, matB], [-2.45, matB], [-2.75, matR]].forEach(([z, m]) => {
+        const r = new THREE.Mesh(railGeo, m); r.position.set(0, BB.h + 0.02, z); breadGroup.add(r);
       });
-      const matRes = new THREE.MeshStandardMaterial({
-        color: 0xc4956a,
-        roughness: 0.55,
-        metalness: 0.08,
-      });
-      const matPin = new THREE.MeshStandardMaterial({
-        color: 0xc0c0c0,
-        roughness: 0.25,
-        metalness: 0.85,
-      });
-      const matUsb = new THREE.MeshStandardMaterial({
-        color: 0xe0e0e0,
-        roughness: 0.35,
-        metalness: 0.55,
-      });
-
-      // Layout — larger breadboard, clean alignment
-      const BB = { w: 11.5, d: 6.2, h: 0.28 };
-      const ESP = { x: -4.0, z: 0, w: 1.7, d: 3.1 };
-      const LED_START_X = -1.6;
-      const LED_GAP = 0.85;
-      const LED_Z = 1.15;
-      const RES_Z = -0.15;
-      const RES_Y = 0.42;
-
-      const root = new THREE.Group();
-      scene.add(root);
-
-      // Breadboard
-      const breadGroup = new THREE.Group();
-      breadGroup.visible = false;
-      root.add(breadGroup);
-
-      function buildBreadboard() {
-        const body = new THREE.Mesh(
-          new THREE.BoxGeometry(BB.w, BB.h, BB.d),
-          matBread,
-        );
-        body.position.y = BB.h / 2;
-        body.castShadow = true;
-        body.receiveShadow = true;
-        breadGroup.add(body);
-
-        const railGeo = new THREE.BoxGeometry(BB.w - 0.6, 0.04, 0.18);
-        const matR = new THREE.MeshStandardMaterial({
-          color: 0xdc2626,
-          roughness: 0.45,
-        });
-        const matB = new THREE.MeshStandardMaterial({
-          color: 0x2563eb,
-          roughness: 0.45,
-        });
-        [
-          [2.75, matR],
-          [2.45, matB],
-          [-2.45, matB],
-          [-2.75, matR],
-        ].forEach(([z, m]) => {
-          const r = new THREE.Mesh(railGeo, m);
-          r.position.set(0, BB.h + 0.02, z);
-          breadGroup.add(r);
-        });
-
-        const holeGeo = new THREE.CircleGeometry(0.032, 6);
-        const holeMat = new THREE.MeshBasicMaterial({ color: 0xb8b8b0 });
-        for (let row = 0; row < 16; row++) {
-          for (let col = 0; col < 36; col++) {
-            const hx = -5.0 + col * 0.28;
-            const hz = -1.9 + row * 0.24;
-            if (Math.abs(hz) > 2.2) continue;
-            const hole = new THREE.Mesh(holeGeo, holeMat);
-            hole.rotation.x = -Math.PI / 2;
-            hole.position.set(hx, BB.h + 0.015, hz);
-            breadGroup.add(hole);
-          }
-        }
+      const holeGeo = new THREE.CircleGeometry(0.032, 6);
+      const holeMat = new THREE.MeshBasicMaterial({ color: 0xb8b8b0 });
+      for (let row = 0; row < 16; row++) for (let col = 0; col < 36; col++) {
+        const hx = -5.0 + col * 0.28, hz = -1.9 + row * 0.24;
+        if (Math.abs(hz) > 2.2) continue;
+        const hole = new THREE.Mesh(holeGeo, holeMat);
+        hole.rotation.x = -Math.PI / 2; hole.position.set(hx, BB.h + 0.015, hz); breadGroup.add(hole);
       }
-      buildBreadboard();
+    })();
 
-      // ESP32
-      const espGroup = new THREE.Group();
-      espGroup.visible = false;
-      root.add(espGroup);
-
-      function buildESP() {
-        const board = new THREE.Mesh(
-          new THREE.BoxGeometry(ESP.w, 0.14, ESP.d),
-          matEsp,
-        );
-        board.position.set(ESP.x, BB.h + 0.12, ESP.z);
-        board.castShadow = true;
-        espGroup.add(board);
-
-        const chip = new THREE.Mesh(
-          new THREE.BoxGeometry(0.75, 0.14, 0.75),
-          matChip,
-        );
-        chip.position.set(ESP.x, BB.h + 0.26, 0.2);
-        espGroup.add(chip);
-
-        const ant = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8),
-          matPin,
-        );
-        ant.position.set(ESP.x, BB.h + 0.4, -1.25);
-        espGroup.add(ant);
-        const tip = new THREE.Mesh(
-          new THREE.SphereGeometry(0.055, 8, 8),
-          matPin,
-        );
-        tip.position.set(ESP.x, BB.h + 0.6, -1.25);
-        espGroup.add(tip);
-
-        const usb = new THREE.Mesh(
-          new THREE.BoxGeometry(0.4, 0.2, 0.5),
-          matUsb,
-        );
-        usb.position.set(ESP.x - ESP.w / 2 - 0.15, BB.h + 0.1, 0);
-        espGroup.add(usb);
-
-        for (let i = 0; i < 12; i++) {
-          const pz = -1.35 + i * 0.24;
-          const p1 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.07, 0.07, 0.12),
-            matPin,
-          );
-          p1.position.set(ESP.x + ESP.w / 2 - 0.02, BB.h + 0.1, pz);
-          espGroup.add(p1);
-          const p2 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.07, 0.07, 0.12),
-            matPin,
-          );
-          p2.position.set(ESP.x - ESP.w / 2 + 0.02, BB.h + 0.1, pz);
-          espGroup.add(p2);
-        }
-      }
-      buildESP();
-
-      // LEDs
-      const ledGroups = [];
-      const ledMats = [];
-      const ledLights = [];
-
-      function buildLED(i) {
-        const g = new THREE.Group();
-        g.visible = false;
-        const x = LED_START_X + i * LED_GAP;
-        const z = LED_Z;
-        const color = LED_COLORS[i];
-
-        const legGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.5, 6);
-        const leg1 = new THREE.Mesh(legGeo, matPin);
-        leg1.position.set(x - 0.055, BB.h + 0.3, z);
-        g.add(leg1);
-        const leg2 = new THREE.Mesh(legGeo, matPin);
-        leg2.position.set(x + 0.055, BB.h + 0.3, z);
-        g.add(leg2);
-
-        const bodyMat = new THREE.MeshStandardMaterial({
-          color,
-          emissive: color,
-          emissiveIntensity: 0,
-          roughness: 0.2,
-          metalness: 0.05,
-          transparent: true,
-          opacity: 0.88,
-        });
-        const body = new THREE.Mesh(
-          new THREE.SphereGeometry(
-            0.15,
-            20,
-            14,
-            0,
-            Math.PI * 2,
-            0,
-            Math.PI / 2,
-          ),
-          bodyMat,
-        );
-        body.position.set(x, BB.h + 0.6, z);
-        body.castShadow = true;
-        g.add(body);
-
-        const base = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.13, 0.15, 0.07, 14),
-          new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5 }),
-        );
-        base.position.set(x, BB.h + 0.55, z);
-        g.add(base);
-
-        const light = new THREE.PointLight(color, 0, 2.8, 2);
-        light.position.set(x, BB.h + 0.85, z);
-        g.add(light);
-
-        root.add(g);
-        ledGroups.push(g);
-        ledMats.push(bodyMat);
-        ledLights.push(light);
-      }
-      for (let i = 0; i < 8; i++) buildLED(i);
-
-      // Resistors — fully on board, aligned under LEDs
-      const resGroups = [];
-
-      function buildResistor(i) {
-        const g = new THREE.Group();
-        g.visible = false;
-        const x = LED_START_X + i * LED_GAP;
-        const z = RES_Z;
-
-        const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.065, 0.065, 0.36, 12),
-          matRes,
-        );
-        body.rotation.z = Math.PI / 2;
-        body.position.set(x, RES_Y, z);
-        body.castShadow = true;
-        g.add(body);
-
-        [0x8b4513, 0xef4444, 0xeab308, 0x222222].forEach((c, bi) => {
-          const band = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.068, 0.068, 0.035, 8),
-            new THREE.MeshStandardMaterial({ color: c }),
-          );
-          band.rotation.z = Math.PI / 2;
-          band.position.set(x - 0.11 + bi * 0.07, RES_Y, z);
-          g.add(band);
-        });
-
-        const legGeo = new THREE.CylinderGeometry(0.016, 0.016, 0.32, 6);
-        const leg1 = new THREE.Mesh(legGeo, matPin);
-        leg1.position.set(x - 0.2, BB.h + 0.2, z);
-        g.add(leg1);
-        const leg2 = new THREE.Mesh(legGeo, matPin);
-        leg2.position.set(x + 0.2, BB.h + 0.2, z);
-        g.add(leg2);
-
-        root.add(g);
-        resGroups.push(g);
-      }
-      for (let i = 0; i < 8; i++) buildResistor(i);
-
-      // Wires — clean routing
-      const wiresGroup = new THREE.Group();
-      wiresGroup.visible = false;
-      root.add(wiresGroup);
-
-      function tube(pts, color, r = 0.022) {
-        const curve = new THREE.CatmullRomCurve3(pts);
-        const geo = new THREE.TubeGeometry(curve, 32, r, 6, false);
-        const mat = new THREE.MeshStandardMaterial({
-          color,
-          roughness: 0.35,
-          metalness: 0.25,
-        });
-        const m = new THREE.Mesh(geo, mat);
-        m.castShadow = true;
-        return m;
-      }
-
-      function buildWires() {
-        for (let i = 0; i < 8; i++) {
-          const ledX = LED_START_X + i * LED_GAP;
-          const pinZ = -1.1 + i * 0.26;
-          const start = new THREE.Vector3(ESP.x + ESP.w / 2, BB.h + 0.18, pinZ);
-          const mid1 = new THREE.Vector3(
-            ESP.x + ESP.w / 2 + 0.5,
-            BB.h + 0.9 + i * 0.08,
-            pinZ * 0.3,
-          );
-          const mid2 = new THREE.Vector3(
-            ledX - 0.3,
-            BB.h + 0.85 + i * 0.06,
-            LED_Z * 0.5,
-          );
-          const end = new THREE.Vector3(ledX - 0.055, BB.h + 0.55, LED_Z);
-          wiresGroup.add(tube([start, mid1, mid2, end], WIRE_COLS[i], 0.02));
-        }
-
-        for (let i = 0; i < 8; i++) {
-          const x = LED_START_X + i * LED_GAP;
-          const start = new THREE.Vector3(x + 0.055, BB.h + 0.4, LED_Z);
-          const mid = new THREE.Vector3(
-            x + 0.12,
-            BB.h + 0.35,
-            (LED_Z + RES_Z) / 2,
-          );
-          const end = new THREE.Vector3(x - 0.2, RES_Y, RES_Z);
-          wiresGroup.add(tube([start, mid, end], 0x555555, 0.016));
-        }
-
-        for (let i = 0; i < 8; i++) {
-          const x = LED_START_X + i * LED_GAP;
-          const start = new THREE.Vector3(x + 0.2, BB.h + 0.15, RES_Z);
-          const mid = new THREE.Vector3(x, BB.h + 0.12, -1.2);
-          const end = new THREE.Vector3(x, BB.h + 0.05, -2.45);
-          wiresGroup.add(tube([start, mid, end], 0x333333, 0.016));
-        }
-
-        wiresGroup.add(
-          tube(
-            [
-              new THREE.Vector3(ESP.x, BB.h + 0.12, 1.35),
-              new THREE.Vector3(ESP.x - 0.3, BB.h + 0.35, 2.0),
-              new THREE.Vector3(-1.5, BB.h + 0.2, 2.45),
-              new THREE.Vector3(1.5, BB.h + 0.05, 2.45),
-            ],
-            0x111111,
-            0.028,
-          ),
-        );
-      }
-      buildWires();
-
-      // USB
-      const usbGroup = new THREE.Group();
-      usbGroup.visible = false;
-      root.add(usbGroup);
-
-      function buildUSB() {
-        usbGroup.add(
-          tube(
-            [
-              new THREE.Vector3(ESP.x - ESP.w / 2 - 0.15, BB.h + 0.1, 0),
-              new THREE.Vector3(ESP.x - 1.8, BB.h + 0.05, 0.4),
-              new THREE.Vector3(ESP.x - 2.8, 0.0, 1.0),
-              new THREE.Vector3(ESP.x - 3.5, -0.4, 1.8),
-            ],
-            0xe8e8e8,
-            0.048,
-          ),
-        );
-        const tip = new THREE.Mesh(
-          new THREE.BoxGeometry(0.38, 0.22, 0.5),
-          matUsb,
-        );
-        tip.position.set(ESP.x - 3.55, -0.45, 1.85);
-        usbGroup.add(tip);
-      }
-      buildUSB();
-
-      // Particles
-      const particleGroup = new THREE.Group();
-      scene.add(particleGroup);
-      const particles = [];
+    const espGroup = new THREE.Group(); espGroup.visible = false; root.add(espGroup);
+    (function buildESP() {
+      const board = new THREE.Mesh(new THREE.BoxGeometry(ESP.w, 0.14, ESP.d), matEsp);
+      board.position.set(ESP.x, BB.h + 0.12, ESP.z); board.castShadow = true; espGroup.add(board);
+      const chip = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.14, 0.75), matChip);
+      chip.position.set(ESP.x, BB.h + 0.26, 0.2); espGroup.add(chip);
+      const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), matPin);
+      ant.position.set(ESP.x, BB.h + 0.4, -1.25); espGroup.add(ant);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), matPin);
+      tip.position.set(ESP.x, BB.h + 0.6, -1.25); espGroup.add(tip);
+      const usb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.5), matUsb);
+      usb.position.set(ESP.x - ESP.w / 2 - 0.15, BB.h + 0.1, 0); espGroup.add(usb);
       for (let i = 0; i < 12; i++) {
-        const p = new THREE.Mesh(
-          new THREE.SphereGeometry(0.045, 8, 8),
-          new THREE.MeshBasicMaterial({
-            color: 0x3b82f6,
-            transparent: true,
-            opacity: 0,
-          }),
-        );
-        p.visible = false;
-        particleGroup.add(p);
-        particles.push(p);
+        const pz = -1.35 + i * 0.24;
+        [[ESP.x + ESP.w / 2 - 0.02], [ESP.x - ESP.w / 2 + 0.02]].forEach(([px]) => {
+          const p = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.12), matPin);
+          p.position.set(px, BB.h + 0.1, pz); espGroup.add(p);
+        });
       }
+    })();
 
-      // State
-      let currentStep = -1;
-      let animating = false;
-      let stopFlag = false;
-      let buildDone = false;
-      let maxReached = -1;
+    const ledGroups = [], ledMats = [], ledLights = [];
+    for (let i = 0; i < 8; i++) {
+      const g = new THREE.Group(); g.visible = false;
+      const x = LED_START_X + i * LED_GAP, z = LED_Z, color = LED_COLORS[i];
+      const legGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.5, 6);
+      [-0.055, 0.055].forEach(dx => {
+        const leg = new THREE.Mesh(legGeo, matPin); leg.position.set(x + dx, BB.h + 0.3, z); g.add(leg);
+      });
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color, emissive: color, emissiveIntensity: 0, roughness: 0.2, metalness: 0.05, transparent: true, opacity: 0.88
+      });
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), bodyMat);
+      body.position.set(x, BB.h + 0.6, z); body.castShadow = true; g.add(body);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 0.07, 14),
+        new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5 }));
+      base.position.set(x, BB.h + 0.55, z); g.add(base);
+      const light = new THREE.PointLight(color, 0, 2.8, 2); light.position.set(x, BB.h + 0.85, z); g.add(light);
+      root.add(g); ledGroups.push(g); ledMats.push(bodyMat); ledLights.push(light);
+    }
 
-      function setLED(i, on) {
-        if (ledMats[i]) {
-          ledMats[i].emissiveIntensity = on ? 1.5 : 0;
-          ledMats[i].color.setHex(on ? LED_COLORS[i] : 0x333333);
-        }
-        if (ledLights[i]) ledLights[i].intensity = on ? 2.0 : 0;
+    const resGroups = [];
+    for (let i = 0; i < 8; i++) {
+      const g = new THREE.Group(); g.visible = false;
+      const x = LED_START_X + i * LED_GAP, z = RES_Z;
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.36, 12), matRes);
+      body.rotation.z = Math.PI / 2; body.position.set(x, RES_Y, z); body.castShadow = true; g.add(body);
+      [0x8B4513, 0xef4444, 0xeab308, 0x222222].forEach((c, bi) => {
+        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.068, 0.035, 8),
+          new THREE.MeshStandardMaterial({ color: c }));
+        band.rotation.z = Math.PI / 2; band.position.set(x - 0.11 + bi * 0.07, RES_Y, z); g.add(band);
+      });
+      const legGeo = new THREE.CylinderGeometry(0.016, 0.016, 0.32, 6);
+      [-0.2, 0.2].forEach(dx => {
+        const leg = new THREE.Mesh(legGeo, matPin); leg.position.set(x + dx, BB.h + 0.2, z); g.add(leg);
+      });
+      root.add(g); resGroups.push(g);
+    }
+
+    const wiresGroup = new THREE.Group(); wiresGroup.visible = false; root.add(wiresGroup);
+    function tube(pts, color, r = 0.022) {
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const geo = new THREE.TubeGeometry(curve, 32, r, 6, false);
+      const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.25 }));
+      m.castShadow = true; return m;
+    }
+    (function buildWires() {
+      for (let i = 0; i < 8; i++) {
+        const ledX = LED_START_X + i * LED_GAP, pinZ = -1.1 + i * 0.26;
+        wiresGroup.add(tube([
+          new THREE.Vector3(ESP.x + ESP.w / 2, BB.h + 0.18, pinZ),
+          new THREE.Vector3(ESP.x + ESP.w / 2 + 0.5, BB.h + 0.9 + i * 0.08, pinZ * 0.3),
+          new THREE.Vector3(ledX - 0.3, BB.h + 0.85 + i * 0.06, LED_Z * 0.5),
+          new THREE.Vector3(ledX - 0.055, BB.h + 0.55, LED_Z)
+        ], WIRE_COLS[i], 0.02));
       }
-
-      function allOff() {
-        for (let i = 0; i < 8; i++) setLED(i, false);
+      for (let i = 0; i < 8; i++) {
+        const x = LED_START_X + i * LED_GAP;
+        wiresGroup.add(tube([
+          new THREE.Vector3(x + 0.055, BB.h + 0.4, LED_Z),
+          new THREE.Vector3(x + 0.12, BB.h + 0.35, (LED_Z + RES_Z) / 2),
+          new THREE.Vector3(x - 0.2, RES_Y, RES_Z)
+        ], 0x555555, 0.016));
+        wiresGroup.add(tube([
+          new THREE.Vector3(x + 0.2, BB.h + 0.15, RES_Z),
+          new THREE.Vector3(x, BB.h + 0.12, -1.2),
+          new THREE.Vector3(x, BB.h + 0.05, -2.45)
+        ], 0x333333, 0.016));
       }
+      wiresGroup.add(tube([
+        new THREE.Vector3(ESP.x, BB.h + 0.12, 1.35),
+        new THREE.Vector3(ESP.x - 0.3, BB.h + 0.35, 2.0),
+        new THREE.Vector3(-1.5, BB.h + 0.2, 2.45),
+        new THREE.Vector3(1.5, BB.h + 0.05, 2.45)
+      ], 0x111111, 0.028));
+    })();
 
-      function renderSteps() {
-        const list = document.getElementById("stepsList");
-        list.innerHTML = "";
-        STEPS.forEach((s, idx) => {
-          const item = document.createElement("div");
-          item.className = "step-item";
-          item.dataset.step = s.id;
-          const reachable =
-            s.id <= maxReached + 1 || (maxReached < 0 && s.id === 0);
-          if (!reachable && s.id > maxReached) item.classList.add("locked");
-          if (s.id === currentStep) item.classList.add("active");
-          if (
-            s.id < currentStep ||
-            (s.id <= maxReached && s.id !== currentStep)
-          )
-            item.classList.add("done");
-          item.innerHTML = `
+    const usbGroup = new THREE.Group(); usbGroup.visible = false; root.add(usbGroup);
+    (function buildUSB() {
+      usbGroup.add(tube([
+        new THREE.Vector3(ESP.x - ESP.w / 2 - 0.15, BB.h + 0.1, 0),
+        new THREE.Vector3(ESP.x - 1.8, BB.h + 0.05, 0.4),
+        new THREE.Vector3(ESP.x - 2.8, 0.0, 1.0),
+        new THREE.Vector3(ESP.x - 3.5, -0.4, 1.8)
+      ], 0xe8e8e8, 0.048));
+      const tip = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.22, 0.5), matUsb);
+      tip.position.set(ESP.x - 3.55, -0.45, 1.85); usbGroup.add(tip);
+    })();
+
+    const particleGroup = new THREE.Group(); scene.add(particleGroup);
+    const particles = [];
+    for (let i = 0; i < 12; i++) {
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8),
+        new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0 }));
+      p.visible = false; particleGroup.add(p); particles.push(p);
+    }
+
+    // ═══════════ STATE ═══════════
+    let mode = 'build'; // build | exp1 | exp2
+    let currentStep = -1;
+    let maxReached = -1;
+    let expStep = -1;
+    let animating = false;
+    let stopFlag = false;
+    let buildDone = false;
+    let speedMul = 1;
+    let exp1Max = -1, exp2Max = -1;
+    let exp2Persist = [false, false, false, false]; // LEDs that stay on during fill
+
+    function setLED(i, on) {
+      if (ledMats[i]) {
+        ledMats[i].emissiveIntensity = on ? 1.5 : 0;
+        ledMats[i].color.setHex(on ? LED_COLORS[i] : 0x333333);
+      }
+      if (ledLights[i]) ledLights[i].intensity = on ? 2.0 : 0;
+    }
+    function allOff() { for (let i = 0; i < 8; i++) setLED(i, false); }
+    function applyLeds(arr) {
+      allOff();
+      (arr || []).forEach(i => setLED(i, true));
+    }
+
+    // ═══════════ UI ═══════════
+    function currentSteps() {
+      if (mode === 'exp1') return EXP1_STEPS;
+      if (mode === 'exp2') return EXP2_STEPS;
+      return BUILD_STEPS;
+    }
+
+    function fillSectionBody(bodyId, steps, cur, maxR, sectionMode) {
+      const body = document.getElementById(bodyId);
+      if (!body) return;
+      body.innerHTML = '';
+      steps.forEach((s, idx) => {
+        const item = document.createElement('div');
+        item.className = 'step-item';
+        item.dataset.step = s.id;
+        const reachable = sectionMode === 'build'
+          ? (s.id <= maxR || s.id === maxR + 1 || (maxR < 0 && s.id === 0))
+          : buildDone;
+        if (!reachable) item.classList.add('locked');
+        if (sectionMode === mode && s.id === cur) item.classList.add('active');
+        if (s.id < cur || (s.id <= maxR && s.id !== cur)) item.classList.add('done');
+        item.innerHTML = `
           <div class="step-dot">${s.id}</div>
           <div class="step-content">
             <div class="step-title">${s.title}</div>
             <div class="step-desc">${s.desc}</div>
-          </div>
-        `;
-          item.addEventListener("click", () => {
-            if (
-              s.id <= maxReached ||
-              s.id === maxReached + 1 ||
-              (maxReached < 0 && s.id === 0)
-            ) {
-              jumpToStep(s.id);
-            }
-          });
-          list.appendChild(item);
-          if (idx < STEPS.length - 1) {
-            const conn = document.createElement("div");
-            conn.className = "step-connector";
-            list.appendChild(conn);
+          </div>`;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (sectionMode === 'build') {
+            if (s.id <= maxReached || s.id === maxReached + 1 || (maxReached < 0 && s.id === 0))
+              jumpBuildStep(s.id);
+          } else if (buildDone) {
+            if (mode !== sectionMode) switchMode(sectionMode);
+            jumpExpStep(s.id);
           }
         });
-      }
-
-      function updateStepUI() {
-        renderSteps();
-        const pct =
-          currentStep < 0 ? 0 : ((currentStep + 1) / STEPS.length) * 100;
-        document.getElementById("progressFill").style.width = pct + "%";
-        document.getElementById("btnPrev").disabled =
-          currentStep <= 0 || animating;
-        document.getElementById("btnNext").disabled =
-          currentStep >= STEPS.length - 1 ||
-          animating ||
-          (currentStep + 1 > maxReached + 1 && maxReached >= 0);
-
-        const badge = document.getElementById("stageBadge");
-        if (currentStep < 0) badge.innerHTML = "<span>آماده</span>";
-        else if (currentStep >= 7 && buildDone)
-          badge.innerHTML =
-            '<span class="pulse"></span><span>آماده اجرا</span>';
-        else
-          badge.innerHTML = `<span>مرحله ${currentStep + 1} از ${STEPS.length}</span>`;
-      }
-
-      function setStatus(t, live = false) {
-        const el = document.getElementById("statusText");
-        el.textContent = t;
-        el.className = live ? "live" : "";
-      }
-
-      const codePlaceholders = {
-        setup: "کد setup() اینجا قرار می‌گیرد.",
-        exp1: "کد آزمایش ۱ (رقص نور حلقه‌ای) اینجا قرار می‌گیرد.",
-        exp2: "کد آزمایش ۲ (انباشت خطی) اینجا قرار می‌گیرد.",
-      };
-
-      function showCode(key) {
-        document.getElementById("codeBody").innerHTML =
-          `<div class="code-placeholder">${codePlaceholders[key] || ""}</div>`;
-        document.querySelectorAll(".code-tab").forEach((t) => {
-          t.classList.toggle("active", t.dataset.tab === key);
-        });
-      }
-
-      document.querySelectorAll(".code-tab").forEach((tab) => {
-        tab.addEventListener("click", () => showCode(tab.dataset.tab));
-      });
-
-      function showUpTo(step) {
-        breadGroup.visible = step >= 0;
-        espGroup.visible = step >= 1;
-        for (let i = 0; i < 8; i++) {
-          ledGroups[i].visible = step >= 2;
-          ledGroups[i].scale.setScalar(1);
-          resGroups[i].visible = step >= 3;
-          resGroups[i].scale.setScalar(1);
-        }
-        wiresGroup.visible = step >= 4;
-        wiresGroup.scale.setScalar(1);
-        usbGroup.visible = step >= 5;
-        usbGroup.scale.setScalar(1);
-        if (step < 2) allOff();
-      }
-
-      function sleep(ms) {
-        return new Promise((r) => {
-          if (stopFlag) r();
-          else setTimeout(r, ms);
-        });
-      }
-
-      function easeOut(t) {
-        return 1 - Math.pow(1 - t, 3);
-      }
-
-      async function fadeIn(obj, dur = 550) {
-        obj.visible = true;
-        obj.scale.setScalar(0.01);
-        const t0 = performance.now();
-        return new Promise((res) => {
-          (function frame(now) {
-            if (stopFlag) {
-              obj.scale.setScalar(1);
-              res();
-              return;
-            }
-            const t = Math.min(1, (now - t0) / dur);
-            obj.scale.setScalar(easeOut(t));
-            if (t < 1) requestAnimationFrame(frame);
-            else res();
-          })(t0);
-        });
-      }
-
-      async function camTo(pos, target, dur = 700) {
-        const sp = camera.position.clone();
-        const st = controls.target.clone();
-        const t0 = performance.now();
-        return new Promise((res) => {
-          (function frame(now) {
-            if (stopFlag) {
-              res();
-              return;
-            }
-            const t = Math.min(1, (now - t0) / dur);
-            const e = easeOut(t);
-            camera.position.lerpVectors(sp, pos, e);
-            controls.target.lerpVectors(st, target, e);
-            if (t < 1) requestAnimationFrame(frame);
-            else res();
-          })(t0);
-        });
-      }
-
-      const CAMS = [
-        [new THREE.Vector3(6, 7, 9), new THREE.Vector3(0, 0.3, 0)],
-        [new THREE.Vector3(1, 5, 6), new THREE.Vector3(-3.5, 0.4, 0)],
-        [new THREE.Vector3(4, 5.5, 7), new THREE.Vector3(1, 0.5, 0.5)],
-        [new THREE.Vector3(4, 5, 6), new THREE.Vector3(1, 0.4, 0)],
-        [new THREE.Vector3(3, 6.5, 5), new THREE.Vector3(0, 0.6, 0.3)],
-        [new THREE.Vector3(2, 5, 7), new THREE.Vector3(-2, 0.3, 0.5)],
-        [new THREE.Vector3(5, 5, 6), new THREE.Vector3(0, 0.5, 0.3)],
-        [new THREE.Vector3(6, 6, 8), new THREE.Vector3(0.5, 0.5, 0)],
-      ];
-
-      async function jumpToStep(step) {
-        if (animating) return;
-        if (step > maxReached + 1 && maxReached >= 0) return;
-        if (maxReached < 0 && step > 0) return;
-
-        currentStep = step;
-        if (step > maxReached) maxReached = step;
-        showUpTo(step);
-        updateStepUI();
-
-        if (CAMS[step]) await camTo(CAMS[step][0], CAMS[step][1], 500);
-        setStatus(STEPS[step].title + " — " + STEPS[step].desc);
-
-        if (step >= 6) showCode("setup");
-        if (step >= 7) {
-          buildDone = true;
-          document.getElementById("btnExp1").disabled = false;
-          document.getElementById("btnExp2").disabled = false;
-          document.getElementById("btnReset").disabled = false;
-        }
-      }
-
-      async function runBuild() {
-        if (animating) return;
-        animating = true;
-        stopFlag = false;
-        document.getElementById("btnBuild").disabled = true;
-        document.getElementById("btnReset").disabled = false;
-        document.getElementById("btnStop").disabled = false;
-        document.getElementById("btnExp1").disabled = true;
-        document.getElementById("btnExp2").disabled = true;
-
-        breadGroup.visible = false;
-        espGroup.visible = false;
-        wiresGroup.visible = false;
-        usbGroup.visible = false;
-        ledGroups.forEach((g) => {
-          g.visible = false;
-          g.scale.setScalar(1);
-        });
-        resGroups.forEach((g) => {
-          g.visible = false;
-          g.scale.setScalar(1);
-        });
-        allOff();
-        particles.forEach((p) => {
-          p.visible = false;
-        });
-        maxReached = -1;
-        buildDone = false;
-
-        currentStep = 0;
-        maxReached = 0;
-        updateStepUI();
-        setStatus("نمایش بردبورد سفید خالی...");
-        await camTo(CAMS[0][0], CAMS[0][1], 600);
-        await fadeIn(breadGroup, 650);
-        await sleep(400);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 1;
-        maxReached = 1;
-        updateStepUI();
-        setStatus("قرار دادن برد ESP32...");
-        await camTo(CAMS[1][0], CAMS[1][1], 700);
-        await fadeIn(espGroup, 700);
-        await sleep(350);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 2;
-        maxReached = 2;
-        updateStepUI();
-        await camTo(CAMS[2][0], CAMS[2][1], 600);
-        for (let i = 0; i < 8; i++) {
-          if (stopFlag) break;
-          setStatus(`افزودن LED ${i + 1} (${LED_NAMES[i]}) — GPIO ${GPIO[i]}`);
-          await fadeIn(ledGroups[i], 280);
-          await sleep(70);
-        }
-        await sleep(300);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 3;
-        maxReached = 3;
-        updateStepUI();
-        for (let i = 0; i < 8; i++) {
-          if (stopFlag) break;
-          setStatus(`افزودن مقاومت ${i + 1}`);
-          await fadeIn(resGroups[i], 250);
-          await sleep(55);
-        }
-        await sleep(300);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 4;
-        maxReached = 4;
-        updateStepUI();
-        setStatus("اتصال سیم‌های GPIO...");
-        await camTo(CAMS[4][0], CAMS[4][1], 600);
-        await fadeIn(wiresGroup, 800);
-        await sleep(350);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 5;
-        maxReached = 5;
-        updateStepUI();
-        setStatus("اتصال GND و کابل USB...");
-        await fadeIn(usbGroup, 600);
-        await sleep(300);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 6;
-        maxReached = 6;
-        updateStepUI();
-        setStatus("نمایش مسیر جریان الکتریکی...");
-        showCode("setup");
-        await camTo(CAMS[6][0], CAMS[6][1], 500);
-        await demoFlow();
-        await sleep(300);
-        if (stopFlag) {
-          finishBuild(false);
-          return;
-        }
-
-        currentStep = 7;
-        maxReached = 7;
-        updateStepUI();
-        finishBuild(true);
-      }
-
-      function finishBuild(success) {
-        animating = false;
-        document.getElementById("btnStop").disabled = true;
-        if (success) {
-          buildDone = true;
-          setStatus("مدار کامل شد. آزمایش ۱ یا ۲ را اجرا کنید.");
-          document.getElementById("btnExp1").disabled = false;
-          document.getElementById("btnExp2").disabled = false;
-        } else {
-          setStatus(
-            "ساخت متوقف شد. از تایم‌لاین یا دکمه‌های قبلی/بعدی ادامه دهید.",
-          );
-          document.getElementById("btnBuild").disabled = false;
-        }
-        updateStepUI();
-      }
-
-      async function demoFlow() {
-        const path = [
-          new THREE.Vector3(ESP.x + ESP.w / 2, BB.h + 0.25, -1.1),
-          new THREE.Vector3(ESP.x + 1.2, BB.h + 1.0, -0.3),
-          new THREE.Vector3(LED_START_X - 0.1, BB.h + 0.7, LED_Z),
-          new THREE.Vector3(LED_START_X + 0.1, BB.h + 0.4, 0.4),
-          new THREE.Vector3(LED_START_X - 0.15, RES_Y, RES_Z),
-          new THREE.Vector3(LED_START_X, BB.h + 0.1, -2.45),
-        ];
-        for (let c = 0; c < 3; c++) {
-          if (stopFlag) break;
-          setLED(0, true);
-          for (let t = 0; t <= 1; t += 0.03) {
-            if (stopFlag) break;
-            const idx = Math.min(
-              path.length - 2,
-              Math.floor(t * (path.length - 1)),
-            );
-            const lt = t * (path.length - 1) - idx;
-            const pos = new THREE.Vector3().lerpVectors(
-              path[idx],
-              path[idx + 1],
-              lt,
-            );
-            const p = particles[0];
-            p.position.copy(pos);
-            p.visible = true;
-            p.material.opacity = 0.9;
-            await sleep(22);
-          }
-          particles[0].visible = false;
-          setLED(0, false);
-          await sleep(150);
-        }
-      }
-
-      async function runExp1() {
-        if (animating || !buildDone) return;
-        animating = true;
-        stopFlag = false;
-        document.getElementById("btnExp1").disabled = true;
-        document.getElementById("btnExp2").disabled = true;
-        document.getElementById("btnStop").disabled = false;
-        showCode("exp1");
-        setStatus("آزمایش ۱: رقص نور حلقه‌ای", true);
-        await camTo(
-          new THREE.Vector3(4.5, 5, 6.5),
-          new THREE.Vector3(1, 0.6, 0.5),
-          500,
-        );
-
-        while (!stopFlag) {
-          for (let i = 0; i < 8; i++) {
-            if (stopFlag) break;
-            allOff();
-            setLED(i, true);
-            setStatus(`فاز ۱ — LED ${i + 1} (۲۰۰ms)`, true);
-            await sleep(200);
-          }
-          if (stopFlag) break;
-          for (let i = 0; i < 8; i++) {
-            if (stopFlag) break;
-            allOff();
-            setLED(i, true);
-            setLED((i + 1) % 8, true);
-            setStatus(`فاز ۲ — جفت (${i + 1}, ${((i + 1) % 8) + 1})`, true);
-            await sleep(200);
-          }
-        }
-        allOff();
-        setStatus("آزمایش ۱ متوقف شد.");
-        document.getElementById("btnExp1").disabled = false;
-        document.getElementById("btnExp2").disabled = false;
-        document.getElementById("btnStop").disabled = true;
-        animating = false;
-      }
-
-      const EXP2 = [
-        [1, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1],
-        [1, 0, 0, 1],
-        [0, 1, 0, 1],
-        [0, 0, 1, 1],
-        [1, 0, 1, 1],
-        [0, 1, 1, 1],
-        [1, 1, 1, 1],
-        [0, 0, 0, 0],
-        [1, 1, 1, 1],
-        [0, 0, 0, 0],
-      ];
-
-      async function runExp2() {
-        if (animating || !buildDone) return;
-        animating = true;
-        stopFlag = false;
-        document.getElementById("btnExp1").disabled = true;
-        document.getElementById("btnExp2").disabled = true;
-        document.getElementById("btnStop").disabled = false;
-        showCode("exp2");
-        setStatus("آزمایش ۲: انباشت خطی", true);
-        await camTo(
-          new THREE.Vector3(3.5, 4.5, 5.5),
-          new THREE.Vector3(0, 0.6, 0.5),
-          500,
-        );
-
-        while (!stopFlag) {
-          for (let s = 0; s < EXP2.length; s++) {
-            if (stopFlag) break;
-            allOff();
-            for (let i = 0; i < 4; i++) setLED(i, !!EXP2[s][i]);
-            setStatus(`گام ${s + 1}/۱۳`, true);
-            await sleep(300);
-          }
-        }
-        allOff();
-        setStatus("آزمایش ۲ متوقف شد.");
-        document.getElementById("btnExp1").disabled = false;
-        document.getElementById("btnExp2").disabled = false;
-        document.getElementById("btnStop").disabled = true;
-        animating = false;
-      }
-
-      document.getElementById("btnBuild").addEventListener("click", runBuild);
-      document.getElementById("btnExp1").addEventListener("click", runExp1);
-      document.getElementById("btnExp2").addEventListener("click", runExp2);
-      document.getElementById("btnStop").addEventListener("click", () => {
-        stopFlag = true;
-      });
-
-      document.getElementById("btnPrev").addEventListener("click", () => {
-        if (currentStep > 0 && !animating) jumpToStep(currentStep - 1);
-      });
-      document.getElementById("btnNext").addEventListener("click", () => {
-        if (animating) return;
-        if (currentStep < 0) {
-          jumpToStep(0);
-          return;
-        }
-        if (
-          currentStep < STEPS.length - 1 &&
-          currentStep + 1 <= maxReached + 1
-        ) {
-          jumpToStep(currentStep + 1);
+        body.appendChild(item);
+        if (idx < steps.length - 1) {
+          const conn = document.createElement('div');
+          conn.className = 'step-connector';
+          body.appendChild(conn);
         }
       });
+    }
 
-      document.getElementById("btnReset").addEventListener("click", () => {
-        stopFlag = true;
-        setTimeout(() => {
-          breadGroup.visible = false;
-          espGroup.visible = false;
-          wiresGroup.visible = false;
-          usbGroup.visible = false;
-          ledGroups.forEach((g) => {
-            g.visible = false;
-          });
-          resGroups.forEach((g) => {
-            g.visible = false;
-          });
-          allOff();
-          particles.forEach((p) => {
-            p.visible = false;
-          });
-          currentStep = -1;
-          maxReached = -1;
-          buildDone = false;
-          animating = false;
-          updateStepUI();
-          setStatus(
-            "برای شروع، «شروع ساخت» را بزنید یا از دکمه‌های قبلی/بعدی استفاده کنید.",
-          );
-          showCode("setup");
-          document.getElementById("btnBuild").disabled = false;
-          document.getElementById("btnExp1").disabled = true;
-          document.getElementById("btnExp2").disabled = true;
-          document.getElementById("btnStop").disabled = true;
-          document.getElementById("btnReset").disabled = true;
-          camera.position.set(8, 9, 11);
-          controls.target.set(0.5, 0.5, 0);
-        }, 100);
+    function renderSteps() {
+      fillSectionBody('bodyBuild', BUILD_STEPS, currentStep, maxReached, 'build');
+      fillSectionBody('bodyExp1', EXP1_STEPS, mode === 'exp1' ? expStep : -1, exp1Max, 'exp1');
+      fillSectionBody('bodyExp2', EXP2_STEPS, mode === 'exp2' ? expStep : -1, exp2Max, 'exp2');
+    }
+
+    function openSection(section) {
+      document.querySelectorAll('.section-block').forEach(el => {
+        const isTarget = el.dataset.section === section;
+        el.classList.toggle('open', isTarget);
+        el.classList.toggle('active', isTarget);
       });
+    }
 
-      function resize() {
-        const w = viewport.clientWidth;
-        const h = viewport.clientHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-      }
-      window.addEventListener("resize", resize);
-      resize();
+    function updateSectionLocks() {
+      const sec1 = document.getElementById('secExp1');
+      const sec2 = document.getElementById('secExp2');
+      if (sec1) sec1.classList.toggle('disabled', !buildDone);
+      if (sec2) sec2.classList.toggle('disabled', !buildDone);
+    }
 
-      function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-      }
-      animate();
-
+    function updateStepUI() {
       renderSteps();
+      updateSectionLocks();
+      openSection(mode);
+
+      const steps = currentSteps();
+      const cur = mode === 'build' ? currentStep : expStep;
+      const pct = cur < 0 ? 0 : ((cur + 1) / steps.length) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+
+      document.getElementById('btnPrev').disabled = cur <= 0 || animating;
+      const canNext = mode === 'build'
+        ? (cur < steps.length - 1 && !animating && (cur + 1 <= maxReached + 1 || maxReached < 0))
+        : (cur < steps.length - 1 && !animating);
+      document.getElementById('btnNext').disabled = !canNext && !(mode === 'build' && cur < 0);
+
+      // badges
+      const bBuild = Math.max(0, currentStep + 1);
+      const b1 = mode === 'exp1' ? Math.max(0, expStep + 1) : Math.max(0, exp1Max + 1);
+      const b2 = mode === 'exp2' ? Math.max(0, expStep + 1) : Math.max(0, exp2Max + 1);
+      const elB = document.getElementById('badgeBuild');
+      const el1 = document.getElementById('badgeExp1');
+      const el2 = document.getElementById('badgeExp2');
+      if (elB) elB.textContent = `${Math.min(bBuild, BUILD_STEPS.length)}/${BUILD_STEPS.length}`;
+      if (el1) el1.textContent = `${Math.min(b1, EXP1_STEPS.length)}/${EXP1_STEPS.length}`;
+      if (el2) el2.textContent = `${Math.min(b2, EXP2_STEPS.length)}/${EXP2_STEPS.length}`;
+
+      const badge = document.getElementById('stageBadge');
+      if (mode === 'build') {
+        if (currentStep < 0) badge.innerHTML = '<span>آماده</span>';
+        else if (currentStep >= 7 && buildDone) badge.innerHTML = '<span class="pulse"></span><span>آماده اجرا</span>';
+        else badge.innerHTML = `<span>ساخت · ${currentStep + 1}/${BUILD_STEPS.length}</span>`;
+      } else if (mode === 'exp1') {
+        badge.innerHTML = `<span class="pulse"></span><span>آزمایش ۱ · ${(expStep >= 0 ? expStep + 1 : 0)}/${EXP1_STEPS.length}</span>`;
+      } else {
+        badge.innerHTML = `<span class="pulse"></span><span>آزمایش ۲ · ${(expStep >= 0 ? expStep + 1 : 0)}/${EXP2_STEPS.length}</span>`;
+      }
+
+      // auto-scroll active step into view inside its section
+      const activeItem = document.querySelector(`#${mode === 'build' ? 'bodyBuild' : mode === 'exp1' ? 'bodyExp1' : 'bodyExp2'} .step-item.active`);
+      if (activeItem) activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    let statusToken = 0;
+    function setStatus(t, live = false) {
+      const el = document.getElementById('statusText');
+      const bar = document.getElementById('statusBar');
+      if (!el) return;
+      if (el.textContent === t) {
+        el.className = 'status-text' + (live ? ' live' : '');
+        return;
+      }
+      const token = ++statusToken;
+      el.classList.add('out');
+      bar.classList.add('flash');
+      setTimeout(() => {
+        if (token !== statusToken) return;
+        el.textContent = t;
+        el.className = 'status-text out' + (live ? ' live' : '');
+        void el.offsetWidth;
+        el.classList.remove('out');
+        el.classList.add('in');
+        setTimeout(() => {
+          if (token !== statusToken) return;
+          el.classList.remove('in');
+          // keep blue permanently (or green if live)
+          el.className = 'status-text' + (live ? ' live' : '');
+          bar.classList.remove('flash');
+        }, 260);
+      }, 160);
+    }
+
+    function showCode(key) {
+      const lines = CODE[key] || [];
+      const html = lines.map((ln, i) => {
+        const n = i + 1;
+        return `<span class="code-line" data-line="${n}" ${ln.key ? `data-key="${ln.key}"` : ''}><span class="ln">${n}</span>${ln.t || ' '}</span>`;
+      }).join('');
+      document.getElementById('codeBody').innerHTML = html;
+      document.querySelectorAll('.code-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === key));
+    }
+
+    function glowLines(lineNums) {
+      document.querySelectorAll('.code-line').forEach(el => {
+        const n = parseInt(el.dataset.line, 10);
+        el.classList.toggle('glow', (lineNums || []).includes(n));
+      });
+      // scroll first glowing into view
+      const first = document.querySelector('.code-line.glow');
+      if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function glowKeys(keys) {
+      document.querySelectorAll('.code-line').forEach(el => {
+        el.classList.toggle('glow', keys && keys.includes(el.dataset.key));
+      });
+      const first = document.querySelector('.code-line.glow');
+      if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('.code-tab').forEach(tab => {
+      tab.addEventListener('click', () => showCode(tab.dataset.tab));
+    });
+
+    function showUpTo(step) {
+      breadGroup.visible = step >= 0;
+      espGroup.visible = step >= 1;
+      for (let i = 0; i < 8; i++) {
+        ledGroups[i].visible = step >= 2; ledGroups[i].scale.setScalar(1);
+        resGroups[i].visible = step >= 3; resGroups[i].scale.setScalar(1);
+      }
+      wiresGroup.visible = step >= 4; wiresGroup.scale.setScalar(1);
+      usbGroup.visible = step >= 5; usbGroup.scale.setScalar(1);
+      if (step < 2) allOff();
+    }
+
+    function sleep(ms) {
+      const actual = Math.max(8, ms / speedMul);
+      return new Promise(r => { if (stopFlag) r(); else setTimeout(r, actual); });
+    }
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        speedMul = parseFloat(btn.dataset.speed);
+      });
+    });
+
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+    async function fadeIn(obj, dur = 550) {
+      obj.visible = true; obj.scale.setScalar(0.01);
+      const scaled = Math.max(80, dur / speedMul);
+      const t0 = performance.now();
+      return new Promise(res => {
+        (function frame(now) {
+          if (stopFlag) { obj.scale.setScalar(1); res(); return; }
+          const t = Math.min(1, (now - t0) / scaled);
+          obj.scale.setScalar(easeOut(t));
+          if (t < 1) requestAnimationFrame(frame); else res();
+        })(t0);
+      });
+    }
+
+    async function camTo(pos, target, dur = 700) {
+      const sp = camera.position.clone(), st = controls.target.clone();
+      const scaled = Math.max(120, dur / speedMul);
+      const t0 = performance.now();
+      return new Promise(res => {
+        (function frame(now) {
+          if (stopFlag) { res(); return; }
+          const t = Math.min(1, (now - t0) / scaled);
+          const e = easeOut(t);
+          camera.position.lerpVectors(sp, pos, e);
+          controls.target.lerpVectors(st, target, e);
+          if (t < 1) requestAnimationFrame(frame); else res();
+        })(t0);
+      });
+    }
+
+    const CAMS = [
+      [new THREE.Vector3(6, 7, 9), new THREE.Vector3(0, 0.3, 0)],
+      [new THREE.Vector3(1, 5, 6), new THREE.Vector3(-3.5, 0.4, 0)],
+      [new THREE.Vector3(4, 5.5, 7), new THREE.Vector3(1, 0.5, 0.5)],
+      [new THREE.Vector3(4, 5, 6), new THREE.Vector3(1, 0.4, 0)],
+      [new THREE.Vector3(3, 6.5, 5), new THREE.Vector3(0, 0.6, 0.3)],
+      [new THREE.Vector3(2, 5, 7), new THREE.Vector3(-2, 0.3, 0.5)],
+      [new THREE.Vector3(5, 5, 6), new THREE.Vector3(0, 0.5, 0.3)],
+      [new THREE.Vector3(6, 6, 8), new THREE.Vector3(0.5, 0.5, 0)],
+    ];
+
+    // ═══════════ BUILD ═══════════
+    async function jumpBuildStep(step) {
+      if (animating) return;
+      if (step > maxReached + 1 && maxReached >= 0) return;
+      if (maxReached < 0 && step > 0) return;
+      mode = 'build';
+      currentStep = step;
+      if (step > maxReached) maxReached = step;
+      showUpTo(step);
       updateStepUI();
-      showCode("setup");
-    </script>
-  </body>
+      if (CAMS[step]) await camTo(CAMS[step][0], CAMS[step][1], 500);
+      setStatus(BUILD_STEPS[step].title + ' — ' + BUILD_STEPS[step].desc);
+      if (step >= 7) {
+        buildDone = true;
+        document.getElementById('btnExp1').disabled = false;
+        document.getElementById('btnExp2').disabled = false;
+        document.getElementById('btnReset').disabled = false;
+        updateSectionLocks();
+      }
+    }
+
+    async function runBuild() {
+      if (animating) return;
+      animating = true; stopFlag = false; mode = 'build';
+      document.getElementById('btnBuild').disabled = true;
+      document.getElementById('btnReset').disabled = false;
+      document.getElementById('btnStop').disabled = false;
+      document.getElementById('btnExp1').disabled = true;
+      document.getElementById('btnExp2').disabled = true;
+
+      breadGroup.visible = false; espGroup.visible = false;
+      wiresGroup.visible = false; usbGroup.visible = false;
+      ledGroups.forEach(g => { g.visible = false; g.scale.setScalar(1); });
+      resGroups.forEach(g => { g.visible = false; g.scale.setScalar(1); });
+      allOff(); particles.forEach(p => { p.visible = false; });
+      maxReached = -1; buildDone = false;
+
+      const seq = [
+        async () => { currentStep = 0; maxReached = 0; updateStepUI(); setStatus('نمایش بردبورد سفید خالی...'); await camTo(CAMS[0][0], CAMS[0][1], 600); await fadeIn(breadGroup, 650); await sleep(400); },
+        async () => { currentStep = 1; maxReached = 1; updateStepUI(); setStatus('قرار دادن برد ESP32...'); await camTo(CAMS[1][0], CAMS[1][1], 700); await fadeIn(espGroup, 700); await sleep(350); },
+        async () => {
+          currentStep = 2; maxReached = 2; updateStepUI();
+          await camTo(CAMS[2][0], CAMS[2][1], 600);
+          for (let i = 0; i < 8; i++) {
+            if (stopFlag) break;
+            setStatus(`افزودن LED ${i + 1} (${LED_NAMES[i]}) — GPIO ${GPIO[i]}`);
+            await fadeIn(ledGroups[i], 280); await sleep(70);
+          }
+          await sleep(300);
+        },
+        async () => {
+          currentStep = 3; maxReached = 3; updateStepUI();
+          for (let i = 0; i < 8; i++) {
+            if (stopFlag) break;
+            setStatus(`افزودن مقاومت ${i + 1}`);
+            await fadeIn(resGroups[i], 250); await sleep(55);
+          }
+          await sleep(300);
+        },
+        async () => { currentStep = 4; maxReached = 4; updateStepUI(); setStatus('اتصال سیم‌های GPIO...'); await camTo(CAMS[4][0], CAMS[4][1], 600); await fadeIn(wiresGroup, 800); await sleep(350); },
+        async () => { currentStep = 5; maxReached = 5; updateStepUI(); setStatus('اتصال GND و کابل USB...'); await fadeIn(usbGroup, 600); await sleep(300); },
+        async () => { currentStep = 6; maxReached = 6; updateStepUI(); setStatus('نمایش مسیر جریان الکتریکی...'); await camTo(CAMS[6][0], CAMS[6][1], 500); await demoFlow(); await sleep(300); },
+        async () => { currentStep = 7; maxReached = 7; updateStepUI(); },
+      ];
+
+      for (const fn of seq) {
+        if (stopFlag) { finishBuild(false); return; }
+        await fn();
+      }
+      finishBuild(true);
+    }
+
+    function finishBuild(success) {
+      animating = false;
+      document.getElementById('btnStop').disabled = true;
+      if (success) {
+        buildDone = true;
+        setStatus('مدار کامل شد. آزمایش ۱ یا ۲ را اجرا کنید.');
+        document.getElementById('btnExp1').disabled = false;
+        document.getElementById('btnExp2').disabled = false;
+      } else {
+        setStatus('ساخت متوقف شد. از تایم‌لاین ادامه دهید.');
+        document.getElementById('btnBuild').disabled = false;
+      }
+      updateStepUI();
+    }
+
+    async function demoFlow() {
+      const path = [
+        new THREE.Vector3(ESP.x + ESP.w / 2, BB.h + 0.25, -1.1),
+        new THREE.Vector3(ESP.x + 1.2, BB.h + 1.0, -0.3),
+        new THREE.Vector3(LED_START_X - 0.1, BB.h + 0.7, LED_Z),
+        new THREE.Vector3(LED_START_X + 0.1, BB.h + 0.4, 0.4),
+        new THREE.Vector3(LED_START_X - 0.15, RES_Y, RES_Z),
+        new THREE.Vector3(LED_START_X, BB.h + 0.1, -2.45)
+      ];
+      for (let c = 0; c < 3; c++) {
+        if (stopFlag) break;
+        setLED(0, true);
+        for (let t = 0; t <= 1; t += 0.03) {
+          if (stopFlag) break;
+          const idx = Math.min(path.length - 2, Math.floor(t * (path.length - 1)));
+          const lt = (t * (path.length - 1)) - idx;
+          const pos = new THREE.Vector3().lerpVectors(path[idx], path[idx + 1], lt);
+          particles[0].position.copy(pos); particles[0].visible = true; particles[0].material.opacity = 0.9;
+          await sleep(22);
+        }
+        particles[0].visible = false; setLED(0, false); await sleep(150);
+      }
+    }
+
+    // ═══════════ EXPERIMENTS ═══════════
+    function switchMode(m) {
+      if (animating) return;
+      if ((m === 'exp1' || m === 'exp2') && !buildDone) return;
+      mode = m;
+      openSection(m);
+      if (m === 'build') {
+        showUpTo(currentStep >= 0 ? currentStep : 7);
+        setStatus(currentStep >= 0 ? BUILD_STEPS[Math.max(0, currentStep)].title : 'حالت ساخت');
+      } else if (m === 'exp1') {
+        showCode('exp1');
+        showUpTo(7);
+        if (expStep < 0) expStep = 0;
+        applyExp1Step(expStep);
+      } else {
+        showCode('exp2');
+        showUpTo(7);
+        if (expStep < 0) expStep = 0;
+        rebuildExp2State(expStep);
+      }
+      updateStepUI();
+    }
+
+    function applyExp1Step(s) {
+      const st = EXP1_STEPS[s];
+      if (!st) return;
+      applyLeds(st.leds);
+      glowLines(st.glow);
+      setStatus(st.title + ' — ' + st.desc, true);
+      expStep = s;
+      if (s > exp1Max) exp1Max = s;
+      updateStepUI();
+    }
+
+    function rebuildExp2State(upTo) {
+      // Simulate from 0 to upTo
+      exp2Persist = [false, false, false, false];
+      let stepIdx = 0;
+      for (let target = 3; target >= 0; target--) {
+        for (let i = 0; i <= target; i++) {
+          if (stepIdx > upTo) break;
+          exp2Persist[i] = true;
+          if (i < target && stepIdx === upTo) {
+            // at this step LED is on; turnOff happens after delay — for display at step moment keep on
+          }
+          if (i < target && stepIdx < upTo) {
+            exp2Persist[i] = false; // turned off after
+          }
+          // targets above stay
+          for (let k = target + 1; k <= 3; k++) exp2Persist[k] = true;
+          stepIdx++;
+        }
+        if (stepIdx > upTo) break;
+      }
+      // blink steps
+      const fillCount = 4 + 3 + 2 + 1; // 10
+      if (upTo >= fillCount) {
+        // first blink off
+        exp2Persist = [false, false, false, false];
+      }
+      if (upTo >= fillCount + 1) {
+        exp2Persist = [true, true, true, true];
+      }
+      if (upTo >= fillCount + 2) {
+        exp2Persist = [false, false, false, false];
+      }
+
+      // Simpler: just use the step's leds array for display
+      const st = EXP2_STEPS[upTo];
+      if (st) {
+        applyLeds(st.leds);
+        glowLines(st.glow);
+        setStatus(st.title + ' — ' + st.desc, true);
+      }
+      expStep = upTo;
+      if (upTo > exp2Max) exp2Max = upTo;
+      updateStepUI();
+    }
+
+    function jumpExpStep(s) {
+      if (animating) return;
+      if (mode === 'exp1') applyExp1Step(s);
+      else if (mode === 'exp2') rebuildExp2State(s);
+    }
+
+    async function runExp1() {
+      if (animating || !buildDone) return;
+      animating = true; stopFlag = false; mode = 'exp1';
+      openSection('exp1');
+      document.getElementById('btnExp1').disabled = true;
+      document.getElementById('btnExp2').disabled = true;
+      document.getElementById('btnStop').disabled = false;
+      showCode('exp1'); showUpTo(7);
+      await camTo(new THREE.Vector3(4.5, 5, 6.5), new THREE.Vector3(1, 0.6, 0.5), 500);
+      updateStepUI();
+
+      while (!stopFlag) {
+        // Phase 1
+        glowKeys(['loop-one']);
+        setStatus('loop() → runOneLed()', true);
+        await sleep(200);
+        for (let i = 0; i < 8; i++) {
+          if (stopFlag) break;
+          expStep = i; if (i > exp1Max) exp1Max = i; updateStepUI();
+          applyLeds([i]);
+          glowKeys(['one-high', 'one-delay']);
+          setStatus(`فاز ۱ — LED ${i + 1} HIGH (۲۰۰ms)`, true);
+          await sleep(200);
+          glowKeys(['one-low']);
+          applyLeds([]);
+          await sleep(40);
+        }
+        if (stopFlag) break;
+        // Phase 2
+        glowKeys(['loop-two']);
+        setStatus('loop() → runTwoLeds()', true);
+        await sleep(200);
+        for (let i = 0; i < 8; i++) {
+          if (stopFlag) break;
+          const next = (i + 1) % 8;
+          expStep = 8 + i; if (8 + i > exp1Max) exp1Max = 8 + i; updateStepUI();
+          applyLeds([i, next]);
+          glowKeys(['two-high1', 'two-high2', 'two-delay']);
+          setStatus(`فاز ۲ — جفت (${i + 1}, ${next + 1})`, true);
+          await sleep(200);
+          glowKeys(['two-low1', 'two-low2']);
+          applyLeds([]);
+          await sleep(40);
+        }
+      }
+      allOff(); glowLines([]);
+      setStatus('آزمایش ۱ متوقف شد.');
+      document.getElementById('btnExp1').disabled = false;
+      document.getElementById('btnExp2').disabled = false;
+      document.getElementById('btnStop').disabled = true;
+      animating = false;
+      updateStepUI();
+    }
+
+    async function runExp2() {
+      if (animating || !buildDone) return;
+      animating = true; stopFlag = false; mode = 'exp2';
+      openSection('exp2');
+      document.getElementById('btnExp1').disabled = true;
+      document.getElementById('btnExp2').disabled = true;
+      document.getElementById('btnStop').disabled = false;
+      showCode('exp2'); showUpTo(7);
+      await camTo(new THREE.Vector3(3.5, 4.5, 5.5), new THREE.Vector3(0, 0.6, 0.5), 500);
+      updateStepUI();
+
+      while (!stopFlag) {
+        glowKeys(['loop-fill']);
+        setStatus('loop() → fillLine()', true);
+        await sleep(250);
+
+        let sid = 0;
+        const persist = [false, false, false, false];
+        for (let target = 3; target >= 0; target--) {
+          if (stopFlag) break;
+          glowKeys(['fill-call', 'mv-high']);
+          for (let i = 0; i <= target; i++) {
+            if (stopFlag) break;
+            persist[i] = true;
+            applyLeds(persist.map((v, idx) => v ? idx : -1).filter(x => x >= 0));
+            expStep = sid; if (sid > exp2Max) exp2Max = sid; updateStepUI();
+            glowKeys(['mv-high', 'mv-delay']);
+            setStatus(`moveLight(${target}) · i=${i}`, true);
+            await sleep(300);
+            if (i < target) {
+              persist[i] = false;
+              glowKeys(['mv-low']);
+              applyLeds(persist.map((v, idx) => v ? idx : -1).filter(x => x >= 0));
+              await sleep(40);
+            }
+            sid++;
+          }
+        }
+        if (stopFlag) break;
+
+        glowKeys(['loop-blink', 'blk-off1']);
+        setStatus('blinkAll() — همه خاموش', true);
+        allOff(); expStep = sid++; if (expStep > exp2Max) exp2Max = expStep; updateStepUI();
+        await sleep(300);
+
+        glowKeys(['blk-on']);
+        setStatus('blinkAll() — همه روشن', true);
+        applyLeds([0, 1, 2, 3]); expStep = sid++; if (expStep > exp2Max) exp2Max = expStep; updateStepUI();
+        await sleep(300);
+
+        glowKeys(['blk-off2']);
+        setStatus('blinkAll() — همه خاموش', true);
+        allOff(); expStep = sid++; if (expStep > exp2Max) exp2Max = expStep; updateStepUI();
+        await sleep(300);
+      }
+      allOff(); glowLines([]);
+      setStatus('آزمایش ۲ متوقف شد.');
+      document.getElementById('btnExp1').disabled = false;
+      document.getElementById('btnExp2').disabled = false;
+      document.getElementById('btnStop').disabled = true;
+      animating = false;
+      updateStepUI();
+    }
+
+    // ═══════════ CONTROLS ═══════════
+    document.getElementById('btnBuild').addEventListener('click', runBuild);
+    document.getElementById('btnExp1').addEventListener('click', runExp1);
+    document.getElementById('btnExp2').addEventListener('click', runExp2);
+    document.getElementById('btnStop').addEventListener('click', () => { stopFlag = true; });
+
+    document.querySelectorAll('.section-header').forEach(hdr => {
+      hdr.addEventListener('click', () => {
+        const sec = hdr.dataset.section;
+        if ((sec === 'exp1' || sec === 'exp2') && !buildDone) return;
+        switchMode(sec);
+      });
+    });
+
+    document.getElementById('btnPrev').addEventListener('click', () => {
+      if (animating) return;
+      if (mode === 'build' && currentStep > 0) jumpBuildStep(currentStep - 1);
+      else if (mode !== 'build' && expStep > 0) jumpExpStep(expStep - 1);
+    });
+    document.getElementById('btnNext').addEventListener('click', () => {
+      if (animating) return;
+      if (mode === 'build') {
+        if (currentStep < 0) jumpBuildStep(0);
+        else if (currentStep < BUILD_STEPS.length - 1 && currentStep + 1 <= maxReached + 1)
+          jumpBuildStep(currentStep + 1);
+      } else {
+        const len = mode === 'exp1' ? EXP1_STEPS.length : EXP2_STEPS.length;
+        if (expStep < len - 1) jumpExpStep(expStep + 1);
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      stopFlag = true;
+      setTimeout(() => {
+        breadGroup.visible = false; espGroup.visible = false;
+        wiresGroup.visible = false; usbGroup.visible = false;
+        ledGroups.forEach(g => { g.visible = false; });
+        resGroups.forEach(g => { g.visible = false; });
+        allOff(); particles.forEach(p => { p.visible = false; });
+        currentStep = -1; maxReached = -1; expStep = -1;
+        exp1Max = -1; exp2Max = -1; buildDone = false; animating = false; mode = 'build';
+        updateStepUI();
+        setStatus('برای شروع، «شروع ساخت» را بزنید یا از دکمه‌های قبلی/بعدی استفاده کنید.');
+        showCode('exp1'); glowLines([]);
+        document.getElementById('btnBuild').disabled = false;
+        document.getElementById('btnExp1').disabled = true;
+        document.getElementById('btnExp2').disabled = true;
+        document.getElementById('btnStop').disabled = true;
+        document.getElementById('btnReset').disabled = true;
+        camera.position.set(8, 9, 11); controls.target.set(0.5, 0.5, 0);
+      }, 100);
+    });
+
+    function resize() {
+      const w = viewport.clientWidth, h = viewport.clientHeight;
+      camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
+    }
+    window.addEventListener('resize', resize); resize();
+
+    (function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+
+    showCode('exp1');
+    updateStepUI();
+  </script>
+</body>
 </html>
